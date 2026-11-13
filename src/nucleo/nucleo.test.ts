@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Plato } from '../catalogo/catalogo'
 import type { Almacenamiento } from './almacenamiento'
-import { crearNucleo } from './nucleo'
+import { crearNucleo, type Nucleo } from './nucleo'
 
 const catalogoDePrueba: Plato[] = [
   { numero: '045', nombre: 'Nigiri de salmón', piezas: 2, categoria: 'Nigiri' },
@@ -18,6 +18,11 @@ const reloj = () => new Date(ahora)
 const nuevoNucleo = (catalogo: readonly Plato[] = catalogoDePrueba) =>
   crearNucleo({ catalogo, almacenamiento, reloj })
 const almacenamientoGuardado = () => valoresGuardados.values()
+/** Las veces y el total del Consumo, sin las líneas del detalle (que tienen sus propios tests). */
+const vecesYTotal = (nucleo: Nucleo) => {
+  const { veces, totalPiezas } = nucleo.consumo()
+  return { veces, totalPiezas }
+}
 
 beforeEach(() => {
   // Almacenamiento en memoria que deja ver lo escrito, para revisar el formato guardado.
@@ -66,13 +71,13 @@ describe('tomar', () => {
   })
 
   it('sin tomar nada el Consumo está vacío', () => {
-    expect(nuevoNucleo().consumo()).toEqual({ veces: {}, totalPiezas: 0 })
+    expect(vecesYTotal(nuevoNucleo())).toEqual({ veces: {}, totalPiezas: 0 })
   })
 
   it('tomar un número que no está en el Catálogo no hace nada', () => {
     const nucleo = nuevoNucleo()
     nucleo.tomar('999')
-    expect(nucleo.consumo()).toEqual({ veces: {}, totalPiezas: 0 })
+    expect(vecesYTotal(nucleo)).toEqual({ veces: {}, totalPiezas: 0 })
   })
 })
 
@@ -82,21 +87,21 @@ describe('devolver', () => {
     nucleo.tomar('158')
     nucleo.tomar('158')
     nucleo.devolver('158')
-    expect(nucleo.consumo()).toEqual({ veces: { '158': 1 }, totalPiezas: 8 })
+    expect(vecesYTotal(nucleo)).toEqual({ veces: { '158': 1 }, totalPiezas: 8 })
   })
 
   it('devolver el último Plato lo saca del Consumo', () => {
     const nucleo = nuevoNucleo()
     nucleo.tomar('158')
     nucleo.devolver('158')
-    expect(nucleo.consumo()).toEqual({ veces: {}, totalPiezas: 0 })
+    expect(vecesYTotal(nucleo)).toEqual({ veces: {}, totalPiezas: 0 })
   })
 
   it('devolver un Plato no tomado no hace nada', () => {
     const nucleo = nuevoNucleo()
     nucleo.tomar('045')
     nucleo.devolver('158')
-    expect(nucleo.consumo()).toEqual({ veces: { '045': 1 }, totalPiezas: 2 })
+    expect(vecesYTotal(nucleo)).toEqual({ veces: { '045': 1 }, totalPiezas: 2 })
   })
 
   it('nunca baja de cero', () => {
@@ -105,13 +110,13 @@ describe('devolver', () => {
     nucleo.devolver('045')
     nucleo.devolver('045')
     nucleo.tomar('045')
-    expect(nucleo.consumo()).toEqual({ veces: { '045': 1 }, totalPiezas: 2 })
+    expect(vecesYTotal(nucleo)).toEqual({ veces: { '045': 1 }, totalPiezas: 2 })
   })
 
   it('devolver sin Visita activa no hace nada', () => {
     const nucleo = nuevoNucleo()
     nucleo.devolver('045')
-    expect(nucleo.consumo()).toEqual({ veces: {}, totalPiezas: 0 })
+    expect(vecesYTotal(nucleo)).toEqual({ veces: {}, totalPiezas: 0 })
   })
 })
 
@@ -123,7 +128,7 @@ describe('persistencia', () => {
     primero.tomar('045')
     primero.devolver('045')
 
-    expect(nuevoNucleo().consumo()).toEqual({ veces: { '158': 1, '045': 1 }, totalPiezas: 10 })
+    expect(vecesYTotal(nuevoNucleo())).toEqual({ veces: { '158': 1, '045': 1 }, totalPiezas: 10 })
   })
 
   it('las Piezas se calculan con el Catálogo actual, no con el de cuando se tomó', () => {
@@ -139,7 +144,7 @@ describe('persistencia', () => {
     const sinElUramaki = catalogoDePrueba.filter((p) => p.numero !== '158')
 
     const nucleo = nuevoNucleo(sinElUramaki)
-    expect(nucleo.consumo()).toEqual({ veces: { '045': 1 }, totalPiezas: 2 })
+    expect(vecesYTotal(nucleo)).toEqual({ veces: { '045': 1 }, totalPiezas: 2 })
     nucleo.tomar('045')
     expect(nucleo.consumo().totalPiezas).toBe(4)
   })
@@ -267,5 +272,63 @@ describe('buscar', () => {
   it('sin coincidencias devuelve una lista vacía', () => {
     expect(buscar('xyz')).toEqual([])
     expect(buscar('999')).toEqual([])
+  })
+})
+
+describe('líneas del detalle', () => {
+  it('cada Plato tomado da una línea con veces y Piezas, de más a menos Piezas', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('045')
+    nucleo.tomar('045')
+    nucleo.tomar('045')
+    nucleo.tomar('158')
+    nucleo.tomar('201')
+    expect(nucleo.consumo().lineas).toEqual([
+      { plato: catalogoDePrueba[1], veces: 1, piezas: 8 },
+      { plato: catalogoDePrueba[0], veces: 3, piezas: 6 },
+      { plato: catalogoDePrueba[2], veces: 1, piezas: 1 },
+    ])
+  })
+
+  it('a igual Piezas, las líneas siguen el orden de la Carta, no el orden en que se tomó', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('P1')
+    nucleo.tomar('201')
+    nucleo.tomar('158')
+    for (let i = 0; i < 4; i++) nucleo.tomar('045')
+    expect(nucleo.consumo().lineas.map((l) => [l.plato.numero, l.piezas])).toEqual([
+      ['045', 8],
+      ['158', 8],
+      ['201', 1],
+      ['P1', 1],
+    ])
+  })
+
+  it('sin Consumo no hay líneas', () => {
+    expect(nuevoNucleo().consumo().lineas).toEqual([])
+  })
+
+  it('devolver actualiza la línea, y devolver el último la quita', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('158')
+    nucleo.tomar('158')
+    nucleo.tomar('045')
+    nucleo.devolver('158')
+    expect(nucleo.consumo().lineas).toEqual([
+      { plato: catalogoDePrueba[1], veces: 1, piezas: 8 },
+      { plato: catalogoDePrueba[0], veces: 1, piezas: 2 },
+    ])
+    nucleo.devolver('158')
+    expect(nucleo.consumo().lineas).toEqual([{ plato: catalogoDePrueba[0], veces: 1, piezas: 2 }])
+  })
+
+  it('un Plato guardado que ya no está en el Catálogo no aparece en el detalle', () => {
+    const primero = nuevoNucleo()
+    primero.tomar('158')
+    primero.tomar('045')
+    const sinElUramaki = catalogoDePrueba.filter((p) => p.numero !== '158')
+    expect(nuevoNucleo(sinElUramaki).consumo().lineas).toEqual([
+      { plato: catalogoDePrueba[0], veces: 1, piezas: 2 },
+    ])
   })
 })

@@ -8,8 +8,8 @@ Ver la spec: historias 22–26; Implementation Decisions → `consumo()` (línea
 
 **Status:** ready-for-agent
 
-- [ ] Tests del núcleo: las líneas del detalle de `consumo()` vienen ordenadas por Piezas, de más a menos, cada una con veces y Piezas
-- [ ] Tocar el total abre el detalle; un toque vuelve a la lista
-- [ ] El detalle muestra el total y cada Plato tomado con "×N" y sus Piezas
-- [ ] Sin Consumo se muestra un mensaje de vacío
-- [ ] El detalle deja lugar para los botones "Compartir" (06) y "Terminar visita" (05)
+- [x] Tests del núcleo: las líneas del detalle de `consumo()` vienen ordenadas por Piezas, de más a menos, cada una con veces y Piezas
+- [x] Tocar el total abre el detalle; un toque vuelve a la lista
+- [x] El detalle muestra el total y cada Plato tomado con "×N" y sus Piezas
+- [x] Sin Consumo se muestra un mensaje de vacío
+- [x] El detalle deja lugar para los botones "Compartir" (06) y "Terminar visita" (05)

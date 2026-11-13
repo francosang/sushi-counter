@@ -1,11 +1,13 @@
 import { useMemo, useRef, useState, type Ref } from 'react'
 import { agruparPorCategoria, catalogo, type Plato } from './catalogo/catalogo'
 import { useConsumo, useNucleo } from './nucleo/react'
+import { DetalleDeConsumo } from './DetalleDeConsumo'
 
 const grupos = agruparPorCategoria(catalogo)
 
 export function App() {
   const { veces, totalPiezas } = useConsumo()
+  const [verDetalle, setVerDetalle] = useState(false)
   const [texto, setTexto] = useState('')
   const buscador = useRef<HTMLInputElement>(null)
 
@@ -17,6 +19,7 @@ export function App() {
     buscador.current?.focus()
   }
 
+  if (verDetalle) return <DetalleDeConsumo alVolver={() => setVerDetalle(false)} />
   return (
     <main className="app">
       <header className="cabecera">
@@ -24,10 +27,16 @@ export function App() {
           <h1>Sushi Counter</h1>
           <p>Kayi Sushi Barcelona</p>
         </div>
-        <div className="total" aria-live="polite">
+        <button
+          type="button"
+          className="total abre-detalle"
+          aria-live="polite"
+          aria-label={`${totalPiezas} ${totalPiezas === 1 ? 'pieza' : 'piezas'}. Ver detalle`}
+          onClick={() => setVerDetalle(true)}
+        >
           <span className="total-numero">{totalPiezas}</span>
           <span className="total-etiqueta">{totalPiezas === 1 ? 'pieza' : 'piezas'}</span>
-        </div>
+        </button>
         <Buscador ref={buscador} texto={texto} alCambiar={setTexto} />
       </header>
       <ListaDePlatos texto={texto} veces={veces} alTocar={limpiarBusqueda} />
