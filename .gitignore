@@ -2,3 +2,4 @@ node_modules/
 dist/
 carta/
 .DS_Store
+*.tsbuildinfo

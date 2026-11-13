@@ -1,0 +1,75 @@
+:root {
+  --fondo: #111;
+  --superficie: #1e1e1e;
+  --texto: #f2f2f2;
+  --tenue: #9a9a9a;
+  --acento: #d4a64a;
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+.app {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+}
+
+.cabecera h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.cabecera p {
+  margin: 0.25rem 0 0;
+  color: var(--tenue);
+}
+
+.categoria h2 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--acento);
+}
+
+.categoria ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.tarjeta {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: var(--superficie);
+  font-size: 1.05rem;
+}
+
+.numero {
+  color: var(--tenue);
+  font-variant-numeric: tabular-nums;
+}
+
+.piezas {
+  color: var(--tenue);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}

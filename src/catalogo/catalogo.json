@@ -1,0 +1,10 @@
+[
+  { "numero": "183", "nombre": "Onigiri", "piezas": 1, "categoria": "Onigiri" },
+  { "numero": "184", "nombre": "Onigiri black con relleno de gamba tempura", "piezas": 1, "categoria": "Onigiri" },
+  { "numero": "201", "nombre": "Ebi tempura", "piezas": 1, "categoria": "Temaki" },
+  { "numero": "202", "nombre": "Maguro", "piezas": 1, "categoria": "Temaki" },
+  { "numero": "203", "nombre": "Temaki sake", "piezas": 1, "categoria": "Temaki" },
+  { "numero": "231", "nombre": "Ura anguila con teriyaki", "piezas": 1, "categoria": "Dutou" },
+  { "numero": "235", "nombre": "Ura veggy maki", "piezas": 4, "categoria": "Dutou" },
+  { "numero": "236", "nombre": "Ura ghibli", "piezas": 4, "categoria": "Dutou" }
+]
