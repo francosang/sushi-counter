@@ -4,7 +4,10 @@
  */
 import type { Plato } from '../catalogo/catalogo'
 import type { Almacenamiento } from './almacenamiento'
-import { escribirGuardado, leerGuardado, type Guardado, type Veces } from './formato'
+import { escribirGuardado, leerGuardado, type Guardado, type Veces, type VisitaTerminada } from './formato'
+
+/** Pasado este tiempo sin actividad (estrictamente más), se pregunta si sigue la misma Visita. */
+const INACTIVIDAD_PARA_CONFIRMAR = 6 * 60 * 60 * 1000
 
 export interface DependenciasDelNucleo {
   catalogo: readonly Plato[]
@@ -37,6 +40,14 @@ export interface Nucleo {
   devolver(numero: string): void
   /** El Consumo de la Visita activa. Devuelve el mismo objeto mientras nada cambie. */
   consumo(): Consumo
+  /** Pasa la Visita activa al historial con su fecha de fin. El Consumo queda vacío. Sin Visita activa, no hace nada. */
+  terminarVisita(): void
+  /** Registra actividad en la Visita activa sin tocar el Consumo ("Seguir" en el diálogo). Sin Visita activa, no hace nada. */
+  seguirVisita(): void
+  /** Verdadero si hay una Visita activa y la última actividad fue hace más de 6 horas. */
+  necesitaConfirmarVisita(): boolean
+  /** Las Visitas terminadas guardadas en el celular, de la más vieja a la más nueva. */
+  visitasTerminadas(): readonly VisitaTerminada[]
   /** Avisa de cada cambio. Devuelve la función para dejar de escuchar. */
   suscribir(alCambiar: () => void): () => void
 }
@@ -106,6 +117,31 @@ export function crearNucleo({ catalogo, almacenamiento, reloj }: DependenciasDel
     consumo() {
       consumoCalculado ??= calcularConsumo()
       return consumoCalculado
+    },
+
+    terminarVisita() {
+      cambiar((g, ahora) => {
+        const visita = g.visitaActiva
+        if (!visita) return null
+        return { ...g, visitaActiva: null, visitasTerminadas: [...g.visitasTerminadas, { ...visita, fin: ahora }] }
+      })
+    },
+
+    seguirVisita() {
+      cambiar((g, ahora) => {
+        const visita = g.visitaActiva
+        if (!visita) return null
+        return { ...g, visitaActiva: { ...visita, ultimaActividad: ahora } }
+      })
+    },
+
+    necesitaConfirmarVisita() {
+      const visita = guardado.visitaActiva
+      return visita !== null && reloj().getTime() - visita.ultimaActividad > INACTIVIDAD_PARA_CONFIRMAR
+    },
+
+    visitasTerminadas() {
+      return guardado.visitasTerminadas
     },
 
     suscribir(alCambiar) {

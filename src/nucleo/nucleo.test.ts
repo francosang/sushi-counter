@@ -259,3 +259,119 @@ describe('líneas del detalle', () => {
     ])
   })
 })
+
+const HORA = 60 * 60 * 1000
+
+describe('ciclo de la Visita', () => {
+  it('después de terminarVisita() el total es 0 y el historial guardado tiene una Visita con su fecha de fin', () => {
+    const inicio = ahora
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('158')
+    nucleo.tomar('045')
+    ahora += 2 * HORA
+    nucleo.terminarVisita()
+
+    expect(vecesYTotal(nucleo)).toEqual({ veces: {}, totalPiezas: 0 })
+    expect(nuevoNucleo().visitasTerminadas()).toEqual([
+      { inicio, ultimaActividad: inicio, fin: inicio + 2 * HORA, veces: { '158': 1, '045': 1 } },
+    ])
+  })
+
+  it('necesitaConfirmarVisita() es verdadero a las 7 horas de la última actividad y falso a las 5', () => {
+    nuevoNucleo().tomar('158')
+    ahora += 5 * HORA
+    expect(nuevoNucleo().necesitaConfirmarVisita()).toBe(false)
+    ahora += 2 * HORA
+    expect(nuevoNucleo().necesitaConfirmarVisita()).toBe(true)
+  })
+
+  it('a las 6 horas justas todavía no pregunta: tienen que ser más de 6', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('158')
+    ahora += 6 * HORA
+    expect(nucleo.necesitaConfirmarVisita()).toBe(false)
+    ahora += 1
+    expect(nucleo.necesitaConfirmarVisita()).toBe(true)
+  })
+
+  it('el primer tomar crea la Visita activa, y la Visita empieza en ese momento', () => {
+    const nucleo = nuevoNucleo()
+    ahora += HORA
+    const primerToque = ahora
+    nucleo.tomar('045')
+    ahora += 7 * HORA
+    expect(nucleo.necesitaConfirmarVisita()).toBe(true)
+
+    nucleo.terminarVisita()
+    expect(nucleo.visitasTerminadas()).toMatchObject([{ inicio: primerToque }])
+  })
+
+  it('después de terminar, el próximo tomar empieza una Visita nueva', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('045')
+    nucleo.terminarVisita()
+    ahora += HORA
+    nucleo.tomar('158')
+    nucleo.terminarVisita()
+
+    expect(nucleo.visitasTerminadas()).toEqual([
+      { inicio: ahora - HORA, ultimaActividad: ahora - HORA, fin: ahora - HORA, veces: { '045': 1 } },
+      { inicio: ahora, ultimaActividad: ahora, fin: ahora, veces: { '158': 1 } },
+    ])
+  })
+
+  it('terminarVisita() sin Visita activa no guarda nada ni avisa', () => {
+    const nucleo = nuevoNucleo()
+    let avisos = 0
+    nucleo.suscribir(() => avisos++)
+    nucleo.terminarVisita()
+    expect(nucleo.visitasTerminadas()).toEqual([])
+    expect(avisos).toBe(0)
+  })
+
+  it('tomar registra actividad', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('045')
+    ahora += 5 * HORA
+    nucleo.tomar('045')
+    ahora += 5 * HORA
+    expect(nucleo.necesitaConfirmarVisita()).toBe(false)
+  })
+
+  it('devolver registra actividad', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('045')
+    nucleo.tomar('045')
+    ahora += 5 * HORA
+    nucleo.devolver('045')
+    ahora += 5 * HORA
+    expect(nucleo.necesitaConfirmarVisita()).toBe(false)
+  })
+
+  it('seguirVisita() registra actividad y conserva el Consumo', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('158')
+    ahora += 7 * HORA
+    nucleo.seguirVisita()
+    expect(nuevoNucleo().necesitaConfirmarVisita()).toBe(false)
+    expect(vecesYTotal(nuevoNucleo())).toEqual({ veces: { '158': 1 }, totalPiezas: 8 })
+  })
+
+  it('seguirVisita() sin Visita activa no crea ninguna', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.seguirVisita()
+    nucleo.terminarVisita()
+    expect(nucleo.visitasTerminadas()).toEqual([])
+  })
+
+  it('sin Visita activa, necesitaConfirmarVisita() es falso', () => {
+    const nucleo = nuevoNucleo()
+    ahora += 7 * HORA
+    expect(nucleo.necesitaConfirmarVisita()).toBe(false)
+
+    nucleo.tomar('158')
+    nucleo.terminarVisita()
+    ahora += 7 * HORA
+    expect(nucleo.necesitaConfirmarVisita()).toBe(false)
+  })
+})

@@ -10,10 +10,10 @@ Ver la spec: historias 27–33; Implementation Decisions → `terminarVisita()`,
 
 **Status:** ready-for-agent
 
-- [ ] Tests del núcleo (reloj controlable): el primer `tomar` crea la Visita activa
-- [ ] Tests: después de `terminarVisita()`, el total es 0 y el historial guardado tiene una Visita con su fecha de fin
-- [ ] Tests: `necesitaConfirmarVisita()` es verdadero a las 7 horas de la última actividad y falso a las 5; sin Visita activa, es falso
-- [ ] Tests: `tomar` y `devolver` registran actividad
-- [ ] "Terminar visita" en el detalle, con diálogo de confirmación
-- [ ] Al abrir la app, si hace falta confirmar, aparece el diálogo. "Seguir" mantiene el Consumo y registra actividad; "Nueva" termina la Visita anterior
-- [ ] El historial se guarda pero no tiene pantalla (fuera de alcance)
+- [x] Tests del núcleo (reloj controlable): el primer `tomar` crea la Visita activa
+- [x] Tests: después de `terminarVisita()`, el total es 0 y el historial guardado tiene una Visita con su fecha de fin
+- [x] Tests: `necesitaConfirmarVisita()` es verdadero a las 7 horas de la última actividad y falso a las 5; sin Visita activa, es falso
+- [x] Tests: `tomar` y `devolver` registran actividad
+- [x] "Terminar visita" en el detalle, con diálogo de confirmación
+- [x] Al abrir la app, si hace falta confirmar, aparece el diálogo. "Seguir" mantiene el Consumo y registra actividad; "Nueva" termina la Visita anterior
+- [x] El historial se guarda pero no tiene pantalla (fuera de alcance)
