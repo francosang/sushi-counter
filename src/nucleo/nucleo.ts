@@ -21,6 +21,11 @@ export interface Consumo {
 }
 
 export interface Nucleo {
+  /**
+   * Los Platos que coinciden con el texto, en el orden de la Carta. Busca pedazos del
+   * nombre y la categoría sin importar tildes ni mayúsculas.
+   */
+  buscar(texto: string): readonly Plato[]
   /** Suma un Plato al Consumo de la Visita activa; crea la Visita si no hay ninguna. */
   tomar(numero: string): void
   /** Resta un Plato entero. Si ese Plato no se había tomado, no hace nada. */
@@ -59,6 +64,21 @@ export function crearNucleo({ catalogo, almacenamiento, reloj }: DependenciasDel
   }
 
   return {
+    buscar(texto) {
+      const buscado = normalizar(texto)
+      const esNumero = /^\d+$/.test(buscado)
+      const encontrados = catalogo.filter(
+        (plato) =>
+          normalizar(plato.nombre).includes(buscado) ||
+          normalizar(plato.categoria).includes(buscado) ||
+          normalizar(plato.numero).includes(buscado) ||
+          (esNumero && sinCeros(soloDigitos(plato.numero)).includes(sinCeros(buscado))),
+      )
+      // El Plato con exactamente ese número va primero; el resto, en el orden de la Carta.
+      const esExacto = (plato: Plato) => sinCeros(normalizar(plato.numero)) === sinCeros(buscado)
+      return [...encontrados.filter(esExacto), ...encontrados.filter((p) => !esExacto(p))]
+    },
+
     tomar(numero) {
       if (!platos.has(numero)) return
       cambiar((g, ahora) => {
@@ -95,4 +115,19 @@ export function crearNucleo({ catalogo, almacenamiento, reloj }: DependenciasDel
       return () => oyentes.delete(alCambiar)
     },
   }
+}
+
+/** Minúsculas y sin tildes ni diacríticos, para comparar textos al buscar. */
+function normalizar(texto: string): string {
+  return texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim()
+}
+
+/** La parte numérica de un número de Plato ("G150" → "150"). */
+function soloDigitos(numero: string): string {
+  return numero.replace(/\D/g, '')
+}
+
+/** Quita los ceros a la izquierda, dejando al menos un dígito ("045" → "45", "000" → "0"). */
+function sinCeros(numero: string): string {
+  return numero.replace(/^0+(?=\d)/, '')
 }

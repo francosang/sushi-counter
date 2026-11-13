@@ -10,11 +10,11 @@ Ver la spec: historias 1–10 y 11b; Implementation Decisions → `buscar(texto)
 
 **Status:** ready-for-agent
 
-- [ ] Tests del núcleo (con `/tdd`): no importan tildes ni mayúsculas ("salmon" encuentra "Salmón")
-- [ ] Tests: busca pedazos de palabra en el nombre y en la categoría ("nigiri" devuelve toda la categoría Nigiri)
-- [ ] Tests: un texto numérico encuentra por número, con la coincidencia exacta primera y sin importar ceros a la izquierda ("45" encuentra el 045)
-- [ ] Tests: un texto vacío devuelve todo en el orden de la Carta; los resultados conservan ese orden (salvo el número exacto, que va primero)
-- [ ] El buscador queda fijo arriba, con foco al abrir la app y botón para borrar
-- [ ] La lista se filtra en cada letra, sin botón de "buscar"
-- [ ] Sin resultados se muestra "No hay platos con «texto»"
-- [ ] Tocar un Plato limpia el buscador
+- [x] Tests del núcleo (con `/tdd`): no importan tildes ni mayúsculas ("salmon" encuentra "Salmón")
+- [x] Tests: busca pedazos de palabra en el nombre y en la categoría ("nigiri" devuelve toda la categoría Nigiri)
+- [x] Tests: un texto numérico encuentra por número, con la coincidencia exacta primera y sin importar ceros a la izquierda ("45" encuentra el 045)
+- [x] Tests: un texto vacío devuelve todo en el orden de la Carta; los resultados conservan ese orden (salvo el número exacto, que va primero)
+- [x] El buscador queda fijo arriba, con foco al abrir la app y botón para borrar
+- [x] La lista se filtra en cada letra, sin botón de "buscar"
+- [x] Sin resultados se muestra "No hay platos con «texto»"
+- [x] Tocar un Plato limpia el buscador
