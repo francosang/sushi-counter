@@ -18,3 +18,17 @@ Reglas (spec → Implementation Decisions → Catálogo; ADR 0001):
 - [ ] Si algo se lee mal o es ambiguo, se deja una nota al pie de este ticket en vez de inventar el dato
 - [ ] El test de validación del Catálogo sigue en verde (números únicos, piezas ≥ 1)
 - [ ] La app compila, y los Platos nuevos se pueden encontrar buscando por número y por nombre
+
+## Comments
+
+Ninguna página se saltó y no hay números ilegibles.
+
+Ambigüedades:
+- 150/151 están impresos "G150."/"G151."; se conserva el prefijo G (decisión del usuario).
+- 214 "Ura sake cocido plus": el castellano no tiene sufijo y el catalán dice "4PZ"; piezas = 4.
+- 217, 225, 231 y 132 "Bolita salmon tobiko" no tienen sufijo PZ, así que piezas = 1, aunque probablemente sean más.
+- El encabezado de p75 dice "Dutou", pero los Platos son uramaki (231–236). Se conservó la categoría "Dutou" como está impresa.
+- La sección está impresa como "Onigri"; se corrigió a "Onigiri" (decisión del usuario).
+- 131 tiene el sufijo entre paréntesis "(1PZ)"; piezas = 1.
+
+Saltos (no impresos en estas páginas): 122–124, 127–128, 133–140, 144, 146, 148, 152, 154, 157, 159, 162, 166, 168, 171–174, 181–182, 187–189, 195–196, 200, 205–210, 212–213, 215–216, 220, 222, 226–227, 229, 232–234.

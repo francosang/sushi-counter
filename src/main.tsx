@@ -6,6 +6,9 @@ import { almacenamientoDelNavegador } from './nucleo/almacenamiento'
 import { crearNucleo } from './nucleo/nucleo'
 import { NucleoProvider } from './nucleo/react'
 import './index.css'
+import { registerSW } from 'virtual:pwa-register'
+
+registerSW({ immediate: true })
 
 const nucleo = crearNucleo({
   catalogo,
