@@ -18,6 +18,16 @@ export interface Consumo {
   veces: Readonly<Veces>
   /** Suma de veces × Piezas del Catálogo actual. */
   totalPiezas: number
+  /** Las líneas del detalle: una por Plato tomado, de más a menos Piezas; a igual Piezas, en el orden de la Carta. */
+  lineas: readonly LineaDeConsumo[]
+}
+
+/** Una línea del detalle de Consumo. */
+export interface LineaDeConsumo {
+  plato: Plato
+  veces: number
+  /** veces × Piezas del Plato. */
+  piezas: number
 }
 
 export interface Nucleo {
@@ -55,7 +65,15 @@ export function crearNucleo({ catalogo, almacenamiento, reloj }: DependenciasDel
       veces[numero] = n
       totalPiezas += n * plato.piezas
     }
-    return { veces, totalPiezas }
+    return { veces, totalPiezas, lineas: lineasDelDetalle(veces) }
+  }
+
+  function lineasDelDetalle(veces: Veces): LineaDeConsumo[] {
+    // Se recorre el Catálogo para que, a igual Piezas, quede el orden de la Carta (sort es estable).
+    return catalogo
+      .filter((plato) => veces[plato.numero])
+      .map((plato) => ({ plato, veces: veces[plato.numero], piezas: veces[plato.numero] * plato.piezas }))
+      .sort((a, b) => b.piezas - a.piezas)
   }
 
   return {
