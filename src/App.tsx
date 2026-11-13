@@ -1,20 +1,28 @@
 import { agruparPorCategoria, catalogo, type Plato } from './catalogo/catalogo'
+import { useConsumo, useNucleo } from './nucleo/react'
 
 const grupos = agruparPorCategoria(catalogo)
 
 export function App() {
+  const { veces, totalPiezas } = useConsumo()
   return (
     <main className="app">
       <header className="cabecera">
-        <h1>Sushi Counter</h1>
-        <p>Kayi Sushi Barcelona</p>
+        <div>
+          <h1>Sushi Counter</h1>
+          <p>Kayi Sushi Barcelona</p>
+        </div>
+        <div className="total" aria-live="polite">
+          <span className="total-numero">{totalPiezas}</span>
+          <span className="total-etiqueta">{totalPiezas === 1 ? 'pieza' : 'piezas'}</span>
+        </div>
       </header>
       {grupos.map(({ categoria, platos }) => (
         <section key={categoria} className="categoria">
           <h2>{categoria}</h2>
           <ul>
             {platos.map((plato) => (
-              <TarjetaDePlato key={plato.numero} plato={plato} />
+              <TarjetaDePlato key={plato.numero} plato={plato} veces={veces[plato.numero] ?? 0} />
             ))}
           </ul>
         </section>
@@ -23,14 +31,29 @@ export function App() {
   )
 }
 
-function TarjetaDePlato({ plato }: { plato: Plato }) {
+function TarjetaDePlato({ plato, veces }: { plato: Plato; veces: number }) {
+  const nucleo = useNucleo()
+  const tomado = veces > 0
   return (
-    <li className="tarjeta">
-      <span className="numero">{plato.numero}</span>
-      <span className="nombre">{plato.nombre}</span>
-      <span className="piezas">
-        {plato.piezas} {plato.piezas === 1 ? 'pieza' : 'piezas'}
-      </span>
+    <li className={tomado ? 'tarjeta tomada' : 'tarjeta'}>
+      <button type="button" className="tocar" onClick={() => nucleo.tomar(plato.numero)}>
+        <span className="numero">{plato.numero}</span>
+        <span className="nombre">{plato.nombre}</span>
+        <span className="piezas">
+          {plato.piezas} {plato.piezas === 1 ? 'pieza' : 'piezas'}
+        </span>
+        {tomado && <span className="veces">×{veces}</span>}
+      </button>
+      {tomado && (
+        <button
+          type="button"
+          className="devolver"
+          aria-label={`Restar un ${plato.nombre}`}
+          onClick={() => nucleo.devolver(plato.numero)}
+        >
+          −
+        </button>
+      )}
     </li>
   )
 }
