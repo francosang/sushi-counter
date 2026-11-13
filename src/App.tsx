@@ -1,22 +1,28 @@
 import { useMemo, useRef, useState, type Ref } from 'react'
-import { agruparPorCategoria, catalogo, type Plato } from './catalogo/catalogo'
+import type { Plato } from './catalogo/catalogo'
+import type { Veces } from './nucleo/nucleo'
 import { useConsumo, useNucleo } from './nucleo/react'
+import { RESTAURANTE, textoDePiezas } from './nucleo/textos'
 import { DetalleDeConsumo } from './DetalleDeConsumo'
-
-const grupos = agruparPorCategoria(catalogo)
+import { Total } from './Total'
 
 export function App() {
-  const { veces, totalPiezas } = useConsumo()
+  const { veces } = useConsumo()
   const [verDetalle, setVerDetalle] = useState(false)
   const [texto, setTexto] = useState('')
   const buscador = useRef<HTMLInputElement>(null)
 
+  // Al borrar la búsqueda, el buscador queda listo para escribir otra.
+  function borrarBusqueda() {
+    setTexto('')
+    buscador.current?.focus()
+  }
+
   // Después de tocar un Plato, el buscador se limpia para buscar el siguiente.
   function limpiarBusqueda() {
     if (!texto) return
-    setTexto('')
+    borrarBusqueda()
     window.scrollTo({ top: 0 })
-    buscador.current?.focus()
   }
 
   if (verDetalle) return <DetalleDeConsumo alVolver={() => setVerDetalle(false)} />
@@ -25,19 +31,10 @@ export function App() {
       <header className="cabecera">
         <div>
           <h1>Sushi Counter</h1>
-          <p>Kayi Sushi Barcelona</p>
+          <p>{RESTAURANTE}</p>
         </div>
-        <button
-          type="button"
-          className="total abre-detalle"
-          aria-live="polite"
-          aria-label={`${totalPiezas} ${totalPiezas === 1 ? 'pieza' : 'piezas'}. Ver detalle`}
-          onClick={() => setVerDetalle(true)}
-        >
-          <span className="total-numero">{totalPiezas}</span>
-          <span className="total-etiqueta">{totalPiezas === 1 ? 'pieza' : 'piezas'}</span>
-        </button>
-        <Buscador ref={buscador} texto={texto} alCambiar={setTexto} />
+        <Total alTocar={() => setVerDetalle(true)} />
+        <Buscador ref={buscador} texto={texto} alCambiar={setTexto} alBorrar={borrarBusqueda} />
       </header>
       <ListaDePlatos texto={texto} veces={veces} alTocar={limpiarBusqueda} />
     </main>
@@ -48,10 +45,12 @@ function Buscador({
   ref,
   texto,
   alCambiar,
+  alBorrar,
 }: {
   ref: Ref<HTMLInputElement>
   texto: string
   alCambiar: (texto: string) => void
+  alBorrar: () => void
 }) {
   return (
     <div className="buscador" role="search">
@@ -70,7 +69,7 @@ function Buscador({
         onChange={(e) => alCambiar(e.target.value)}
       />
       {texto && (
-        <button type="button" className="borrar" aria-label="Borrar búsqueda" onClick={() => alCambiar('')}>
+        <button type="button" className="borrar" aria-label="Borrar búsqueda" onClick={alBorrar}>
           ×
         </button>
       )}
@@ -85,11 +84,12 @@ function ListaDePlatos({
   alTocar,
 }: {
   texto: string
-  veces: Readonly<Record<string, number>>
+  veces: Readonly<Veces>
   alTocar: () => void
 }) {
   const nucleo = useNucleo()
   const resultados = useMemo(() => nucleo.buscar(texto), [nucleo, texto])
+  const grupos = nucleo.platosPorCategoria()
   const tarjeta = (plato: Plato) => (
     <TarjetaDePlato key={plato.numero} plato={plato} veces={veces[plato.numero] ?? 0} alTocar={alTocar} />
   )
@@ -127,9 +127,7 @@ function TarjetaDePlato({ plato, veces, alTocar }: { plato: Plato; veces: number
       >
         <span className="numero">{plato.numero}</span>
         <span className="nombre">{plato.nombre}</span>
-        <span className="piezas">
-          {plato.piezas} {plato.piezas === 1 ? 'pieza' : 'piezas'}
-        </span>
+        <span className="piezas">{textoDePiezas(plato.piezas)}</span>
         {tomado && <span className="veces">×{veces}</span>}
       </button>
       {tomado && (

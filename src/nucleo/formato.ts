@@ -5,15 +5,16 @@
  * Cuando cambie la forma de `Guardado`, subir `VERSION_ACTUAL` y agregar
  * la migración desde la versión anterior en `leerGuardado`.
  */
+import type { NumeroDePlato } from '../catalogo/catalogo'
 import type { Almacenamiento } from './almacenamiento'
 
-export const CLAVE = 'sushi-counter'
-export const VERSION_ACTUAL = 1
+const CLAVE = 'sushi-counter'
+const VERSION_ACTUAL = 1
 
-/** Número de Plato (string, tal cual la Carta) → veces que se tomó. */
-export type Veces = Record<string, number>
+/** Número de Plato → veces que se tomó. */
+export type Veces = Record<NumeroDePlato, number>
 
-export interface VisitaActiva {
+interface VisitaActiva {
   /** Milisegundos desde epoch. */
   inicio: number
   /** Milisegundos desde epoch. */
@@ -35,7 +36,7 @@ export interface Guardado {
   apodoPreguntado?: boolean
 }
 
-export function guardadoVacio(): Guardado {
+function guardadoVacio(): Guardado {
   return { version: VERSION_ACTUAL, visitaActiva: null, visitasTerminadas: [], apodo: null }
 }
 

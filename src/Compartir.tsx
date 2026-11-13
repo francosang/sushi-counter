@@ -1,5 +1,6 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useId, useState, type FormEvent } from 'react'
 import { useApodo, useNucleo } from './nucleo/react'
+import { useDialogoModal } from './useDialogoModal'
 
 const DURACION_DEL_AVISO = 2500
 
@@ -96,14 +97,8 @@ function DialogoApodo({
   alCancelar: () => void
 }) {
   const [texto, setTexto] = useState(inicial)
-  const ref = useRef<HTMLDialogElement>(null)
+  const dialogoModal = useDialogoModal(alCancelar)
   const idTitulo = useId()
-
-  useEffect(() => {
-    const dialogo = ref.current
-    if (dialogo && !dialogo.open) dialogo.showModal()
-    return () => dialogo?.close()
-  }, [])
 
   function alEnviar(evento: FormEvent) {
     evento.preventDefault()
@@ -111,15 +106,7 @@ function DialogoApodo({
   }
 
   return (
-    <dialog
-      ref={ref}
-      className="dialogo"
-      aria-labelledby={idTitulo}
-      onCancel={(evento) => {
-        evento.preventDefault()
-        alCancelar()
-      }}
-    >
+    <dialog {...dialogoModal} className="dialogo" aria-labelledby={idTitulo}>
       <form onSubmit={alEnviar}>
         <h2 id={idTitulo} className="dialogo-titulo">
           Tu Apodo

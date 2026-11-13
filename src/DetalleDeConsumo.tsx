@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Compartir } from './Compartir'
 import { DialogoDeConfirmacion } from './DialogoDeConfirmacion'
-import { useConsumo, useNucleo } from './nucleo/react'
-
-const piezasTexto = (n: number) => `${n} ${n === 1 ? 'pieza' : 'piezas'}`
+import { useConsumo, useHayVisitaActiva, useNucleo } from './nucleo/react'
+import { textoDePiezas } from './nucleo/textos'
+import { Total } from './Total'
 
 /** El detalle del Consumo de la Visita activa: el total y una línea por Plato tomado. */
 export function DetalleDeConsumo({ alVolver }: { alVolver: () => void }) {
-  const { totalPiezas, lineas } = useConsumo()
+  const { lineas } = useConsumo()
+  const hayVisitaActiva = useHayVisitaActiva()
   const nucleo = useNucleo()
   const [confirmarTerminar, setConfirmarTerminar] = useState(false)
   return (
@@ -16,10 +17,7 @@ export function DetalleDeConsumo({ alVolver }: { alVolver: () => void }) {
         <button type="button" className="volver" onClick={alVolver}>
           ← Volver
         </button>
-        <div className="total">
-          <span className="total-numero">{totalPiezas}</span>
-          <span className="total-etiqueta">{totalPiezas === 1 ? 'pieza' : 'piezas'}</span>
-        </div>
+        <Total />
       </header>
 
       <h2>Tu Consumo</h2>
@@ -32,7 +30,7 @@ export function DetalleDeConsumo({ alVolver }: { alVolver: () => void }) {
               <span className="numero">{plato.numero}</span>
               <span className="nombre">{plato.nombre}</span>
               <span className="veces">×{veces}</span>
-              <span className="piezas">{piezasTexto(piezas)}</span>
+              <span className="piezas">{textoDePiezas(piezas)}</span>
             </li>
           ))}
         </ul>
@@ -40,7 +38,7 @@ export function DetalleDeConsumo({ alVolver }: { alVolver: () => void }) {
 
       <div className="detalle-acciones">
         <Compartir />
-        {lineas.length > 0 && (
+        {hayVisitaActiva && (
           <button type="button" className="boton terminar-visita" onClick={() => setConfirmarTerminar(true)}>
             Terminar visita
           </button>

@@ -1,12 +1,14 @@
 import datos from './catalogo.json'
 
+/**
+ * Id fijo de un Plato, tal cual lo imprime la Carta ("045", "158", "G150", "P1"),
+ * ceros a la izquierda incluidos. No se reutiliza ni se cambia.
+ */
+export type NumeroDePlato = string
+
 /** Una entrada de comida de la Carta. */
 export interface Plato {
-  /**
-   * Id fijo del Plato, tal cual lo imprime la Carta ("045", "158", "G150", "P1"),
-   * ceros a la izquierda incluidos. No se reutiliza ni se cambia.
-   */
-  numero: string
+  numero: NumeroDePlato
   nombre: string
   /** Entero ≥ 1; 1 si la Carta no indica cantidad. */
   piezas: number

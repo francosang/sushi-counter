@@ -2,16 +2,18 @@
  * El núcleo de lógica: todo lo que la app sabe hacer, independiente de React.
  * Se construye con el Catálogo, un almacenamiento y un reloj inyectables.
  */
-import type { Plato } from '../catalogo/catalogo'
+import { agruparPorCategoria, type GrupoDeCategoria, type NumeroDePlato, type Plato } from '../catalogo/catalogo'
 import type { Almacenamiento } from './almacenamiento'
 import { escribirGuardado, leerGuardado, type Guardado, type Veces, type VisitaTerminada } from './formato'
+import { RESTAURANTE, textoDePiezas } from './textos'
+
+export type { Veces }
 
 /** Pasado este tiempo sin actividad (estrictamente más), se pregunta si sigue la misma Visita. */
 const INACTIVIDAD_PARA_CONFIRMAR = 6 * 60 * 60 * 1000
 
 /** Cuántas líneas del detalle entran en el texto para compartir. */
 const PLATOS_PRINCIPALES = 3
-const RESTAURANTE = 'Kayi Sushi Barcelona'
 
 /** Un Apodo vacío o en blanco cuenta como sin Apodo. */
 function limpiarApodo(apodo: string | null | undefined): string | null {
@@ -46,13 +48,17 @@ export interface LineaDeConsumo {
 export interface Nucleo {
   /**
    * Los Platos que coinciden con el texto, en el orden de la Carta. Busca pedazos del
-   * nombre y la categoría sin importar tildes ni mayúsculas.
+   * nombre y la categoría sin importar tildes ni mayúsculas. Un texto numérico busca desde el
+   * principio de los dígitos del número, sin ceros a la izquierda ("45" → "045", "150" → "G150");
+   * el Plato con exactamente ese número va primero.
    */
   buscar(texto: string): readonly Plato[]
+  /** El Catálogo agrupado por categoría; los grupos y sus Platos, en el orden de la Carta. Siempre el mismo objeto. */
+  platosPorCategoria(): readonly GrupoDeCategoria[]
   /** Suma un Plato al Consumo de la Visita activa; crea la Visita si no hay ninguna. */
-  tomar(numero: string): void
+  tomar(numero: NumeroDePlato): void
   /** Resta un Plato entero. Si ese Plato no se había tomado, no hace nada. */
-  devolver(numero: string): void
+  devolver(numero: NumeroDePlato): void
   /** El Consumo de la Visita activa. Devuelve el mismo objeto mientras nada cambie. */
   consumo(): Consumo
   /**
@@ -71,6 +77,11 @@ export interface Nucleo {
   terminarVisita(): void
   /** Registra actividad en la Visita activa sin tocar el Consumo ("Seguir" en el diálogo). Sin Visita activa, no hace nada. */
   seguirVisita(): void
+  /**
+   * Si hay una Visita activa: empieza con el primer `tomar` y dura hasta `terminarVisita`,
+   * aunque su Consumo quede vacío (Platos devueltos o que ya no están en el Catálogo).
+   */
+  hayVisitaActiva(): boolean
   /** Verdadero si hay una Visita activa y la última actividad fue hace más de 6 horas. */
   necesitaConfirmarVisita(): boolean
   /** Las Visitas terminadas guardadas en el celular, de la más vieja a la más nueva. */
@@ -84,6 +95,7 @@ export function crearNucleo({ catalogo, almacenamiento, reloj }: DependenciasDel
   const oyentes = new Set<() => void>()
   let guardado: Guardado = leerGuardado(almacenamiento)
   let consumoCalculado: Consumo | null = null
+  const grupos = agruparPorCategoria(catalogo)
 
   function cambiar(modificar: (guardado: Guardado, ahora: number) => Guardado | null) {
     const nuevo = modificar(guardado, reloj().getTime())
@@ -102,11 +114,11 @@ export function crearNucleo({ catalogo, almacenamiento, reloj }: DependenciasDel
   function calcularConsumo(): Consumo {
     const veces: Veces = {}
     let totalPiezas = 0
-    for (const [numero, n] of Object.entries(guardado.visitaActiva?.veces ?? {})) {
+    for (const [numero, vecesTomado] of Object.entries(guardado.visitaActiva?.veces ?? {})) {
       const plato = platos.get(numero)
       if (!plato) continue // Un Plato que ya no está en el Catálogo se ignora.
-      veces[numero] = n
-      totalPiezas += n * plato.piezas
+      veces[numero] = vecesTomado
+      totalPiezas += vecesTomado * plato.piezas
     }
     return { veces, totalPiezas, lineas: lineasDelDetalle(veces) }
   }
@@ -123,16 +135,25 @@ export function crearNucleo({ catalogo, almacenamiento, reloj }: DependenciasDel
     buscar(texto) {
       const buscado = normalizar(texto)
       const esNumero = /^\d+$/.test(buscado)
+      // Un texto numérico busca desde el principio de los dígitos del Plato ("45" → "045", "150" → "G150");
+      // si no, cualquier pedazo del número ("p1" → "P1", "P10").
+      const coincideElNumero = (plato: Plato) =>
+        esNumero
+          ? sinCeros(soloDigitos(plato.numero)).startsWith(sinCeros(buscado))
+          : normalizar(plato.numero).includes(buscado)
       const encontrados = catalogo.filter(
         (plato) =>
           normalizar(plato.nombre).includes(buscado) ||
           normalizar(plato.categoria).includes(buscado) ||
-          normalizar(plato.numero).includes(buscado) ||
-          (esNumero && sinCeros(soloDigitos(plato.numero)).includes(sinCeros(buscado))),
+          coincideElNumero(plato),
       )
       // El Plato con exactamente ese número va primero; el resto, en el orden de la Carta.
       const esExacto = (plato: Plato) => sinCeros(normalizar(plato.numero)) === sinCeros(buscado)
       return [...encontrados.filter(esExacto), ...encontrados.filter((p) => !esExacto(p))]
+    },
+
+    platosPorCategoria() {
+      return grupos
     },
 
     tomar(numero) {
@@ -171,13 +192,13 @@ export function crearNucleo({ catalogo, almacenamiento, reloj }: DependenciasDel
           ? `🍣 ${quien} todavía no tomó ninguna pieza en ${RESTAURANTE}`
           : `🍣 Todavía no tomé ninguna pieza en ${RESTAURANTE}`
       }
-      const piezas = `${totalPiezas} ${totalPiezas === 1 ? 'pieza' : 'piezas'}`
+      const piezas = textoDePiezas(totalPiezas)
       const lleva = quien ? `${quien} lleva` : 'Llevo'
-      const top = lineas
+      const platosPrincipales = lineas
         .slice(0, PLATOS_PRINCIPALES)
         .map((l) => `${l.plato.nombre} ×${l.veces}`)
         .join(', ')
-      return `🍣 ${lleva} ${piezas} en ${RESTAURANTE} — top: ${top}`
+      return `🍣 ${lleva} ${piezas} en ${RESTAURANTE} — top: ${platosPrincipales}`
     },
 
     apodo() {
@@ -212,6 +233,10 @@ export function crearNucleo({ catalogo, almacenamiento, reloj }: DependenciasDel
       })
     },
 
+    hayVisitaActiva() {
+      return guardado.visitaActiva !== null
+    },
+
     necesitaConfirmarVisita() {
       const visita = guardado.visitaActiva
       return visita !== null && reloj().getTime() - visita.ultimaActividad > INACTIVIDAD_PARA_CONFIRMAR
@@ -234,7 +259,7 @@ function normalizar(texto: string): string {
 }
 
 /** La parte numérica de un número de Plato ("G150" → "150"). */
-function soloDigitos(numero: string): string {
+function soloDigitos(numero: NumeroDePlato): string {
   return numero.replace(/\D/g, '')
 }
 

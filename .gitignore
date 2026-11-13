@@ -3,3 +3,4 @@ dist/
 carta/
 .DS_Store
 *.tsbuildinfo
+.claude/

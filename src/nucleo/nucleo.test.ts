@@ -253,6 +253,14 @@ describe('buscar', () => {
     expect(buscar('2')).toEqual(['002'])
   })
 
+  it('un número busca desde el principio de los dígitos del Plato, no en cualquier parte', () => {
+    expect(buscar('4')).toEqual(['045', '046'])
+    expect(buscar('5')).toEqual([])
+    expect(buscar('0')).toEqual([])
+    expect(buscar('50')).toEqual([])
+    expect(buscar('150')).toEqual(['150', 'G150'])
+  })
+
   it("'p1' encuentra el Postre P1 primero, sin importar mayúsculas", () => {
     expect(buscar('p1')).toEqual(['P1', 'P10'])
     expect(buscar('P10')).toEqual(['P10'])
@@ -272,6 +280,25 @@ describe('buscar', () => {
   it('sin coincidencias devuelve una lista vacía', () => {
     expect(buscar('xyz')).toEqual([])
     expect(buscar('999')).toEqual([])
+  })
+})
+
+describe('platosPorCategoria', () => {
+  it('agrupa el Catálogo del núcleo por categoría, en el orden de la Carta', () => {
+    const carta: Plato[] = [
+      { numero: '045', nombre: 'Nigiri de salmón', piezas: 2, categoria: 'Nigiri' },
+      { numero: '158', nombre: 'Uramaki California', piezas: 8, categoria: 'Uramaki' },
+      { numero: '046', nombre: 'Nigiri de atún', piezas: 2, categoria: 'Nigiri' },
+      { numero: 'P1', nombre: 'Mochi', piezas: 1, categoria: 'Postres' },
+    ]
+    const grupos = nuevoNucleo(carta)
+      .platosPorCategoria()
+      .map(({ categoria, platos }) => [categoria, platos.map((p) => p.numero)])
+    expect(grupos).toEqual([
+      ['Nigiri', ['045', '046']],
+      ['Uramaki', ['158']],
+      ['Postres', ['P1']],
+    ])
   })
 })
 
@@ -574,5 +601,25 @@ describe('ciclo de la Visita', () => {
     nucleo.terminarVisita()
     ahora += 7 * HORA
     expect(nucleo.necesitaConfirmarVisita()).toBe(false)
+  })
+
+  it('hayVisitaActiva() sigue verdadero aunque se hayan devuelto todos los Platos, hasta terminarla', () => {
+    const nucleo = nuevoNucleo()
+    expect(nucleo.hayVisitaActiva()).toBe(false)
+    nucleo.tomar('158')
+    expect(nucleo.hayVisitaActiva()).toBe(true)
+    nucleo.devolver('158')
+    expect(nucleo.hayVisitaActiva()).toBe(true)
+    expect(nuevoNucleo().hayVisitaActiva()).toBe(true)
+    nucleo.terminarVisita()
+    expect(nucleo.hayVisitaActiva()).toBe(false)
+  })
+
+  it('una Visita con solo Platos que ya no están en el Catálogo sigue activa', () => {
+    nuevoNucleo().tomar('158')
+    const sinUramaki = catalogoDePrueba.filter((p) => p.numero !== '158')
+    const nucleo = nuevoNucleo(sinUramaki)
+    expect(nucleo.consumo().lineas).toEqual([])
+    expect(nucleo.hayVisitaActiva()).toBe(true)
   })
 })

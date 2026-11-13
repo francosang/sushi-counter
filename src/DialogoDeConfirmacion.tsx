@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
+import { useDialogoModal } from './useDialogoModal'
 
 interface Props {
   /** La pregunta, en una línea. */
@@ -24,25 +25,11 @@ export function DialogoDeConfirmacion({
   alConfirmar,
   alCancelar,
 }: Props) {
-  const ref = useRef<HTMLDialogElement>(null)
+  const dialogoModal = useDialogoModal(alCancelar)
   const idTitulo = useId()
 
-  useEffect(() => {
-    const dialogo = ref.current
-    if (dialogo && !dialogo.open) dialogo.showModal()
-    return () => dialogo?.close()
-  }, [])
-
   return (
-    <dialog
-      ref={ref}
-      className="dialogo"
-      aria-labelledby={idTitulo}
-      onCancel={(evento) => {
-        evento.preventDefault()
-        alCancelar()
-      }}
-    >
+    <dialog {...dialogoModal} className="dialogo" aria-labelledby={idTitulo}>
       <h2 id={idTitulo} className="dialogo-titulo">
         {titulo}
       </h2>

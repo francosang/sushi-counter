@@ -24,6 +24,12 @@ export function useConsumo(): Consumo {
   return useSyncExternalStore(nucleo.suscribir, nucleo.consumo)
 }
 
+/** Si hay una Visita activa (aunque su Consumo esté vacío); re-renderiza cuando cambia. */
+export function useHayVisitaActiva(): boolean {
+  const nucleo = useNucleo()
+  return useSyncExternalStore(nucleo.suscribir, nucleo.hayVisitaActiva)
+}
+
 /** El Apodo guardado (o `null`); re-renderiza cuando cambia. */
 export function useApodo(): string | null {
   const nucleo = useNucleo()
