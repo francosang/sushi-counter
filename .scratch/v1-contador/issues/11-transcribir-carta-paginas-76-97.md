@@ -12,13 +12,13 @@ Reglas (spec → Implementation Decisions → Catálogo; ADR 0001):
 
 **Blocked by:** 10 (Transcribir Carta, páginas 51–75)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Cada página de 76 a 97 revisada; cada Plato de comida transcrito con número, nombre limpio, piezas y categoría
-- [ ] Si algo se lee mal o es ambiguo, se deja una nota al pie de este ticket en vez de inventar el dato
-- [ ] El test de validación del Catálogo sigue en verde (números únicos, piezas ≥ 1)
-- [ ] Revisión final del Catálogo completo: sin números duplicados, y cada salto en la numeración comprobado contra la Carta (o justificado: bebida, número que no existe)
-- [ ] La app compila, y los Platos nuevos se pueden encontrar buscando por número y por nombre
+- [x] Cada página de 76 a 97 revisada; cada Plato de comida transcrito con número, nombre limpio, piezas y categoría
+- [x] Si algo se lee mal o es ambiguo, se deja una nota al pie de este ticket en vez de inventar el dato
+- [x] El test de validación del Catálogo sigue en verde (números únicos, piezas ≥ 1)
+- [x] Revisión final del Catálogo completo: sin números duplicados, y cada salto en la numeración comprobado contra la Carta (o justificado: bebida, número que no existe)
+- [x] La app compila, y los Platos nuevos se pueden encontrar buscando por número y por nombre
 
 ## Comments
 

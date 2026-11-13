@@ -6,9 +6,13 @@ Ver la spec: historias 43–44; Implementation Decisions → PWA.
 
 **Blocked by:** 01 (Esqueleto desplegado con Catálogo de ejemplo)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [ ] Manifest con nombre, colores e íconos; se puede instalar en Android (Chrome) e iOS (Safari)
-- [ ] Un service worker precachea la app y el Catálogo, y funciona con el base path `/sushi-counter/`
+- [x] Un service worker precachea la app y el Catálogo, y funciona con el base path `/sushi-counter/`
 - [ ] Prueba manual en el celular: después de una primera visita con conexión, en modo avión la app abre y se puede contar
 - [ ] Al publicar una versión nueva, la app se actualiza sin quedar trabada en la anterior
+
+## Comments
+
+- Implementado en `v1-contador`. Pendiente la verificación manual en un celular (casillas sin marcar) después del deploy en https://francosang.github.io/sushi-counter/.

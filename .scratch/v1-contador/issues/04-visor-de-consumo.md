@@ -6,7 +6,7 @@ Ver la spec: historias 22–26; Implementation Decisions → `consumo()` (línea
 
 **Blocked by:** 02 (Contar Platos)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] Tests del núcleo: las líneas del detalle de `consumo()` vienen ordenadas por Piezas, de más a menos, cada una con veces y Piezas
 - [x] Tocar el total abre el detalle; un toque vuelve a la lista

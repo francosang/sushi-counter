@@ -6,12 +6,16 @@ Ver la spec: `.scratch/v1-contador/spec.md` (Implementation Decisions → Stack,
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Proyecto Vite + React + TypeScript con Vitest funcionando (`test` y `build` en verde)
-- [ ] Catálogo de ejemplo como archivo de datos separado del código, con el formato de la spec
-- [ ] Un test valida cualquier Catálogo: números únicos, `piezas` entero ≥ 1, nombre y categoría no vacíos
-- [ ] La pantalla muestra cada Plato con número, nombre y piezas, agrupado por categoría y en el orden de la Carta
-- [ ] Interfaz en español, legible en un celular (viewport móvil, zonas de toque grandes)
-- [ ] Antes de crearlo, se confirma con el usuario el repo público `sushi-counter` en GitHub; `base` configurado para `/sushi-counter/`
+- [x] Proyecto Vite + React + TypeScript con Vitest funcionando (`test` y `build` en verde)
+- [x] Catálogo de ejemplo como archivo de datos separado del código, con el formato de la spec
+- [x] Un test valida cualquier Catálogo: números únicos, `piezas` entero ≥ 1, nombre y categoría no vacíos
+- [x] La pantalla muestra cada Plato con número, nombre y piezas, agrupado por categoría y en el orden de la Carta
+- [x] Interfaz en español, legible en un celular (viewport móvil, zonas de toque grandes)
+- [x] Antes de crearlo, se confirma con el usuario el repo público `sushi-counter` en GitHub; `base` configurado para `/sushi-counter/`
 - [ ] Una GitHub Action construye y publica en GitHub Pages en cada push a `main`; la URL carga en un celular
+
+## Comments
+
+- Implementado en `v1-contador`. Pendiente la verificación manual en un celular (casillas sin marcar) después del deploy en https://francosang.github.io/sushi-counter/.

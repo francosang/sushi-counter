@@ -1,6 +1,6 @@
 # Spec: Sushi Counter v1 (Kayi Sushi Barcelona)
 
-Status: ready-for-agent
+Status: resolved
 
 ## Problem Statement
 

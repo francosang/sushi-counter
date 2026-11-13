@@ -8,7 +8,7 @@ Ver la spec: historias 27–33; Implementation Decisions → `terminarVisita()`,
 
 **Blocked by:** 04 (Visor de Consumo)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] Tests del núcleo (reloj controlable): el primer `tomar` crea la Visita activa
 - [x] Tests: después de `terminarVisita()`, el total es 0 y el historial guardado tiene una Visita con su fecha de fin

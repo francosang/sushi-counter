@@ -8,7 +8,7 @@ Ver la spec: historias 35–42; Implementation Decisions → `textoParaCompartir
 
 **Blocked by:** 04 (Visor de Consumo)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] Tests del núcleo: el texto incluye el total de Piezas, "Kayi Sushi Barcelona" y los Platos principales
 - [x] Tests: con Apodo lo incluye; sin Apodo usa un texto genérico; sin Consumo genera un texto coherente
