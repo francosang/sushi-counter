@@ -1,11 +1,15 @@
+import { useState } from 'react'
 import { Compartir } from './Compartir'
-import { useConsumo } from './nucleo/react'
+import { DialogoDeConfirmacion } from './DialogoDeConfirmacion'
+import { useConsumo, useNucleo } from './nucleo/react'
 
 const piezasTexto = (n: number) => `${n} ${n === 1 ? 'pieza' : 'piezas'}`
 
 /** El detalle del Consumo de la Visita activa: el total y una línea por Plato tomado. */
 export function DetalleDeConsumo({ alVolver }: { alVolver: () => void }) {
   const { totalPiezas, lineas } = useConsumo()
+  const nucleo = useNucleo()
+  const [confirmarTerminar, setConfirmarTerminar] = useState(false)
   return (
     <main className="app detalle">
       <header className="cabecera">
@@ -36,8 +40,28 @@ export function DetalleDeConsumo({ alVolver }: { alVolver: () => void }) {
 
       <div className="detalle-acciones">
         <Compartir />
-        {/* Ticket 05: botón "Terminar visita" (con confirmación). */}
+        {lineas.length > 0 && (
+          <button type="button" className="boton terminar-visita" onClick={() => setConfirmarTerminar(true)}>
+            Terminar visita
+          </button>
+        )}
       </div>
+
+      {confirmarTerminar && (
+        <DialogoDeConfirmacion
+          titulo="¿Terminar la visita?"
+          textoCancelar="Cancelar"
+          textoConfirmar="Terminar"
+          alCancelar={() => setConfirmarTerminar(false)}
+          alConfirmar={() => {
+            nucleo.terminarVisita()
+            setConfirmarTerminar(false)
+            alVolver()
+          }}
+        >
+          Se guarda en tu celular y el total vuelve a cero.
+        </DialogoDeConfirmacion>
+      )}
     </main>
   )
 }

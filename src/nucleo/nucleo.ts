@@ -4,7 +4,10 @@
  */
 import type { Plato } from '../catalogo/catalogo'
 import type { Almacenamiento } from './almacenamiento'
-import { escribirGuardado, leerGuardado, type Guardado, type Veces } from './formato'
+import { escribirGuardado, leerGuardado, type Guardado, type Veces, type VisitaTerminada } from './formato'
+
+/** Pasado este tiempo sin actividad (estrictamente más), se pregunta si sigue la misma Visita. */
+const INACTIVIDAD_PARA_CONFIRMAR = 6 * 60 * 60 * 1000
 
 /** Cuántas líneas del detalle entran en el texto para compartir. */
 const PLATOS_PRINCIPALES = 3
@@ -41,6 +44,11 @@ export interface LineaDeConsumo {
 }
 
 export interface Nucleo {
+  /**
+   * Los Platos que coinciden con el texto, en el orden de la Carta. Busca pedazos del
+   * nombre y la categoría sin importar tildes ni mayúsculas.
+   */
+  buscar(texto: string): readonly Plato[]
   /** Suma un Plato al Consumo de la Visita activa; crea la Visita si no hay ninguna. */
   tomar(numero: string): void
   /** Resta un Plato entero. Si ese Plato no se había tomado, no hace nada. */
@@ -59,6 +67,14 @@ export interface Nucleo {
   apodoPreguntado(): boolean
   /** Guarda el Apodo y lo marca como preguntado. `null`, vacío o en blanco = saltear (sin Apodo). */
   guardarApodo(apodo: string | null): void
+  /** Pasa la Visita activa al historial con su fecha de fin. El Consumo queda vacío. Sin Visita activa, no hace nada. */
+  terminarVisita(): void
+  /** Registra actividad en la Visita activa sin tocar el Consumo ("Seguir" en el diálogo). Sin Visita activa, no hace nada. */
+  seguirVisita(): void
+  /** Verdadero si hay una Visita activa y la última actividad fue hace más de 6 horas. */
+  necesitaConfirmarVisita(): boolean
+  /** Las Visitas terminadas guardadas en el celular, de la más vieja a la más nueva. */
+  visitasTerminadas(): readonly VisitaTerminada[]
   /** Avisa de cada cambio. Devuelve la función para dejar de escuchar. */
   suscribir(alCambiar: () => void): () => void
 }
@@ -104,6 +120,21 @@ export function crearNucleo({ catalogo, almacenamiento, reloj }: DependenciasDel
   }
 
   return {
+    buscar(texto) {
+      const buscado = normalizar(texto)
+      const esNumero = /^\d+$/.test(buscado)
+      const encontrados = catalogo.filter(
+        (plato) =>
+          normalizar(plato.nombre).includes(buscado) ||
+          normalizar(plato.categoria).includes(buscado) ||
+          normalizar(plato.numero).includes(buscado) ||
+          (esNumero && sinCeros(soloDigitos(plato.numero)).includes(sinCeros(buscado))),
+      )
+      // El Plato con exactamente ese número va primero; el resto, en el orden de la Carta.
+      const esExacto = (plato: Plato) => sinCeros(normalizar(plato.numero)) === sinCeros(buscado)
+      return [...encontrados.filter(esExacto), ...encontrados.filter((p) => !esExacto(p))]
+    },
+
     tomar(numero) {
       if (!platos.has(numero)) return
       cambiar((g, ahora) => {
@@ -165,9 +196,49 @@ export function crearNucleo({ catalogo, almacenamiento, reloj }: DependenciasDel
       })
     },
 
+    terminarVisita() {
+      cambiar((g, ahora) => {
+        const visita = g.visitaActiva
+        if (!visita) return null
+        return { ...g, visitaActiva: null, visitasTerminadas: [...g.visitasTerminadas, { ...visita, fin: ahora }] }
+      })
+    },
+
+    seguirVisita() {
+      cambiar((g, ahora) => {
+        const visita = g.visitaActiva
+        if (!visita) return null
+        return { ...g, visitaActiva: { ...visita, ultimaActividad: ahora } }
+      })
+    },
+
+    necesitaConfirmarVisita() {
+      const visita = guardado.visitaActiva
+      return visita !== null && reloj().getTime() - visita.ultimaActividad > INACTIVIDAD_PARA_CONFIRMAR
+    },
+
+    visitasTerminadas() {
+      return guardado.visitasTerminadas
+    },
+
     suscribir(alCambiar) {
       oyentes.add(alCambiar)
       return () => oyentes.delete(alCambiar)
     },
   }
+}
+
+/** Minúsculas y sin tildes ni diacríticos, para comparar textos al buscar. */
+function normalizar(texto: string): string {
+  return texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim()
+}
+
+/** La parte numérica de un número de Plato ("G150" → "150"). */
+function soloDigitos(numero: string): string {
+  return numero.replace(/\D/g, '')
+}
+
+/** Quita los ceros a la izquierda, dejando al menos un dígito ("045" → "45", "000" → "0"). */
+function sinCeros(numero: string): string {
+  return numero.replace(/^0+(?=\d)/, '')
 }

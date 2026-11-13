@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { useApodo, useNucleo } from './nucleo/react'
 
 const DURACION_DEL_AVISO = 2500
@@ -56,7 +56,7 @@ export function Compartir() {
 
   return (
     <div className="compartir">
-      <button type="button" className="boton-principal" onClick={alTocarCompartir}>
+      <button type="button" className="boton boton-principal" onClick={alTocarCompartir}>
         Compartir
       </button>
       <p className="apodo-actual">
@@ -82,6 +82,7 @@ export function Compartir() {
   )
 }
 
+/** Diálogo modal para escribir el Apodo; mismo estilo que `DialogoDeConfirmacion`. */
 function DialogoApodo({
   inicial,
   paraCompartir,
@@ -91,60 +92,66 @@ function DialogoApodo({
   inicial: string
   paraCompartir: boolean
   alElegir: (apodo: string | null) => void
+  /** También se llama si se cierra con Escape o el botón "atrás". */
   alCancelar: () => void
 }) {
   const [texto, setTexto] = useState(inicial)
-  const entrada = useRef<HTMLInputElement>(null)
+  const ref = useRef<HTMLDialogElement>(null)
+  const idTitulo = useId()
 
   useEffect(() => {
-    entrada.current?.focus()
-    const alTeclear = (e: KeyboardEvent) => e.key === 'Escape' && alCancelar()
-    window.addEventListener('keydown', alTeclear)
-    return () => window.removeEventListener('keydown', alTeclear)
-  }, [alCancelar])
+    const dialogo = ref.current
+    if (dialogo && !dialogo.open) dialogo.showModal()
+    return () => dialogo?.close()
+  }, [])
 
-  function alEnviar(e: FormEvent) {
-    e.preventDefault()
+  function alEnviar(evento: FormEvent) {
+    evento.preventDefault()
     alElegir(texto)
   }
 
   return (
-    <div className="dialogo-fondo" onClick={alCancelar}>
-      <form
-        className="dialogo"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="dialogo-apodo-titulo"
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={alEnviar}
-      >
-        <h2 id="dialogo-apodo-titulo">Tu Apodo</h2>
-        <p>Opcional. Aparece en lo que compartís, para que tus amigos sepan quién es.</p>
+    <dialog
+      ref={ref}
+      className="dialogo"
+      aria-labelledby={idTitulo}
+      onCancel={(evento) => {
+        evento.preventDefault()
+        alCancelar()
+      }}
+    >
+      <form onSubmit={alEnviar}>
+        <h2 id={idTitulo} className="dialogo-titulo">
+          Tu Apodo
+        </h2>
+        <p className="dialogo-texto">Opcional. Aparece en lo que compartís, para que tus amigos sepan quién es.</p>
         <input
-          ref={entrada}
+          className="dialogo-entrada"
           type="text"
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           placeholder="Ej.: Franco"
+          aria-label="Apodo"
           maxLength={40}
           autoComplete="nickname"
           enterKeyHint="done"
+          autoFocus
         />
         <div className="dialogo-botones">
           {paraCompartir ? (
-            <button type="button" onClick={() => alElegir(null)}>
+            <button type="button" className="boton" onClick={() => alElegir(null)}>
               Saltear
             </button>
           ) : (
-            <button type="button" onClick={alCancelar}>
+            <button type="button" className="boton" onClick={alCancelar}>
               Cancelar
             </button>
           )}
-          <button type="submit" className="boton-principal">
+          <button type="submit" className="boton boton-principal">
             {paraCompartir ? 'Compartir' : 'Guardar'}
           </button>
         </div>
       </form>
-    </div>
+    </dialog>
   )
 }

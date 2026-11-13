@@ -202,6 +202,79 @@ describe('suscribir', () => {
   })
 })
 
+describe('buscar', () => {
+  const carta: Plato[] = [
+    { numero: '002', nombre: 'Ensalada de mariscos', piezas: 1, categoria: 'Ensalada' },
+    { numero: '045', nombre: 'Nigiri de Salmón', piezas: 2, categoria: 'Nigiri' },
+    { numero: '046', nombre: 'Nigiri de atún', piezas: 2, categoria: 'Nigiri' },
+    { numero: '150', nombre: 'Uramaki de salmón', piezas: 8, categoria: 'Uramaki' },
+    { numero: '158', nombre: 'Uramaki California', piezas: 8, categoria: 'Uramaki' },
+    { numero: 'G150', nombre: 'Gunkan picante', piezas: 2, categoria: 'Gunkan' },
+    { numero: 'P1', nombre: 'Mochi', piezas: 1, categoria: 'Postres' },
+    { numero: 'P10', nombre: 'Tarta de queso', piezas: 1, categoria: 'Postres' },
+  ]
+  const buscar = (texto: string) => nuevoNucleo(carta).buscar(texto).map((p) => p.numero)
+
+  it("buscar('salmon') encuentra 'Nigiri de Salmón', sin importar tildes ni mayúsculas", () => {
+    expect(buscar('salmon')).toEqual(['045', '150'])
+    expect(buscar('SALMÓN')).toEqual(['045', '150'])
+  })
+
+  it('encuentra pedazos de palabra', () => {
+    expect(buscar('salm')).toEqual(['045', '150'])
+    expect(buscar('forn')).toEqual(['158'])
+  })
+
+  it("'gunkan' devuelve toda la categoría, aunque el nombre no lo diga", () => {
+    const conCategoria = [...carta, { numero: 'G151', nombre: 'Huevas', piezas: 2, categoria: 'Gunkan' }]
+    const nucleo = nuevoNucleo(conCategoria)
+    expect(nucleo.buscar('gunkan').map((p) => p.numero)).toEqual(['G150', 'G151'])
+    expect(nucleo.buscar('POSTRE').map((p) => p.numero)).toEqual(['P1', 'P10'])
+  })
+
+  it('un número encuentra el Plato con ese número', () => {
+    expect(buscar('158')).toEqual(['158'])
+  })
+
+  it('al buscar un número, la coincidencia exacta va primera', () => {
+    expect(buscar('15')).toEqual(['150', '158', 'G150'])
+    const conQuince = [...carta, { numero: '015', nombre: 'Sopa miso', piezas: 1, categoria: 'Sopas' }]
+    expect(nuevoNucleo(conQuince).buscar('15').map((p) => p.numero)).toEqual([
+      '015',
+      '150',
+      '158',
+      'G150',
+    ])
+  })
+
+  it('no importan los ceros a la izquierda', () => {
+    expect(buscar('45')).toEqual(['045'])
+    expect(buscar('0045')).toEqual(['045'])
+    expect(buscar('2')).toEqual(['002'])
+  })
+
+  it("'p1' encuentra el Postre P1 primero, sin importar mayúsculas", () => {
+    expect(buscar('p1')).toEqual(['P1', 'P10'])
+    expect(buscar('P10')).toEqual(['P10'])
+    expect(buscar('g150')).toEqual(['G150'])
+  })
+
+  it('un texto vacío devuelve toda la Carta, en orden', () => {
+    const todos = carta.map((p) => p.numero)
+    expect(buscar('')).toEqual(todos)
+    expect(buscar('   ')).toEqual(todos)
+  })
+
+  it('los resultados conservan el orden de la Carta', () => {
+    expect(buscar('de')).toEqual(['002', '045', '046', '150', 'P10'])
+  })
+
+  it('sin coincidencias devuelve una lista vacía', () => {
+    expect(buscar('xyz')).toEqual([])
+    expect(buscar('999')).toEqual([])
+  })
+})
+
 describe('líneas del detalle', () => {
   it('cada Plato tomado da una línea con veces y Piezas, de más a menos Piezas', () => {
     const nucleo = nuevoNucleo()
@@ -385,5 +458,121 @@ describe('Apodo', () => {
     nucleo.tomar('158')
     nucleo.guardarApodo('Franco')
     expect(vecesYTotal(nuevoNucleo())).toEqual({ veces: { '158': 1 }, totalPiezas: 8 })
+  })
+})
+
+const HORA = 60 * 60 * 1000
+
+describe('ciclo de la Visita', () => {
+  it('después de terminarVisita() el total es 0 y el historial guardado tiene una Visita con su fecha de fin', () => {
+    const inicio = ahora
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('158')
+    nucleo.tomar('045')
+    ahora += 2 * HORA
+    nucleo.terminarVisita()
+
+    expect(vecesYTotal(nucleo)).toEqual({ veces: {}, totalPiezas: 0 })
+    expect(nuevoNucleo().visitasTerminadas()).toEqual([
+      { inicio, ultimaActividad: inicio, fin: inicio + 2 * HORA, veces: { '158': 1, '045': 1 } },
+    ])
+  })
+
+  it('necesitaConfirmarVisita() es verdadero a las 7 horas de la última actividad y falso a las 5', () => {
+    nuevoNucleo().tomar('158')
+    ahora += 5 * HORA
+    expect(nuevoNucleo().necesitaConfirmarVisita()).toBe(false)
+    ahora += 2 * HORA
+    expect(nuevoNucleo().necesitaConfirmarVisita()).toBe(true)
+  })
+
+  it('a las 6 horas justas todavía no pregunta: tienen que ser más de 6', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('158')
+    ahora += 6 * HORA
+    expect(nucleo.necesitaConfirmarVisita()).toBe(false)
+    ahora += 1
+    expect(nucleo.necesitaConfirmarVisita()).toBe(true)
+  })
+
+  it('el primer tomar crea la Visita activa, y la Visita empieza en ese momento', () => {
+    const nucleo = nuevoNucleo()
+    ahora += HORA
+    const primerToque = ahora
+    nucleo.tomar('045')
+    ahora += 7 * HORA
+    expect(nucleo.necesitaConfirmarVisita()).toBe(true)
+
+    nucleo.terminarVisita()
+    expect(nucleo.visitasTerminadas()).toMatchObject([{ inicio: primerToque }])
+  })
+
+  it('después de terminar, el próximo tomar empieza una Visita nueva', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('045')
+    nucleo.terminarVisita()
+    ahora += HORA
+    nucleo.tomar('158')
+    nucleo.terminarVisita()
+
+    expect(nucleo.visitasTerminadas()).toEqual([
+      { inicio: ahora - HORA, ultimaActividad: ahora - HORA, fin: ahora - HORA, veces: { '045': 1 } },
+      { inicio: ahora, ultimaActividad: ahora, fin: ahora, veces: { '158': 1 } },
+    ])
+  })
+
+  it('terminarVisita() sin Visita activa no guarda nada ni avisa', () => {
+    const nucleo = nuevoNucleo()
+    let avisos = 0
+    nucleo.suscribir(() => avisos++)
+    nucleo.terminarVisita()
+    expect(nucleo.visitasTerminadas()).toEqual([])
+    expect(avisos).toBe(0)
+  })
+
+  it('tomar registra actividad', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('045')
+    ahora += 5 * HORA
+    nucleo.tomar('045')
+    ahora += 5 * HORA
+    expect(nucleo.necesitaConfirmarVisita()).toBe(false)
+  })
+
+  it('devolver registra actividad', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('045')
+    nucleo.tomar('045')
+    ahora += 5 * HORA
+    nucleo.devolver('045')
+    ahora += 5 * HORA
+    expect(nucleo.necesitaConfirmarVisita()).toBe(false)
+  })
+
+  it('seguirVisita() registra actividad y conserva el Consumo', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('158')
+    ahora += 7 * HORA
+    nucleo.seguirVisita()
+    expect(nuevoNucleo().necesitaConfirmarVisita()).toBe(false)
+    expect(vecesYTotal(nuevoNucleo())).toEqual({ veces: { '158': 1 }, totalPiezas: 8 })
+  })
+
+  it('seguirVisita() sin Visita activa no crea ninguna', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.seguirVisita()
+    nucleo.terminarVisita()
+    expect(nucleo.visitasTerminadas()).toEqual([])
+  })
+
+  it('sin Visita activa, necesitaConfirmarVisita() es falso', () => {
+    const nucleo = nuevoNucleo()
+    ahora += 7 * HORA
+    expect(nucleo.necesitaConfirmarVisita()).toBe(false)
+
+    nucleo.tomar('158')
+    nucleo.terminarVisita()
+    ahora += 7 * HORA
+    expect(nucleo.necesitaConfirmarVisita()).toBe(false)
   })
 })
