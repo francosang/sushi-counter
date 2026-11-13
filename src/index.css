@@ -32,7 +32,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
   margin: -1rem -1rem 0;
   padding: calc(0.75rem + env(safe-area-inset-top)) 1rem 0.75rem;
   background: var(--fondo);
@@ -156,6 +157,52 @@ body {
   white-space: nowrap;
 }
 
+.buscador {
+  position: relative;
+  flex-basis: 100%;
+}
+
+.buscador input {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.5rem 3rem 0.5rem 1rem;
+  border: 2px solid var(--superficie);
+  border-radius: 0.75rem;
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+  /* 16px o más evita que iOS haga zoom al enfocar. */
+  font-size: 1.05rem;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.buscador input:focus {
+  outline: none;
+  border-color: var(--acento);
+}
+
+/* El botón propio reemplaza la cruz nativa del input de búsqueda. */
+.buscador input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.borrar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 3rem;
+  height: 100%;
+  border: 0;
+  background: none;
+  color: var(--tenue);
+  font: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Detalle de Consumo */
 
 .abre-detalle,
@@ -167,6 +214,16 @@ body {
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+.resultados {
+  margin-top: 1rem;
+}
+
+.sin-resultados {
+  margin: 2rem 0;
+  text-align: center;
+  color: var(--tenue);
 }
 
 .abre-detalle {

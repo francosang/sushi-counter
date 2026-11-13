@@ -202,6 +202,79 @@ describe('suscribir', () => {
   })
 })
 
+describe('buscar', () => {
+  const carta: Plato[] = [
+    { numero: '002', nombre: 'Ensalada de mariscos', piezas: 1, categoria: 'Ensalada' },
+    { numero: '045', nombre: 'Nigiri de Salmón', piezas: 2, categoria: 'Nigiri' },
+    { numero: '046', nombre: 'Nigiri de atún', piezas: 2, categoria: 'Nigiri' },
+    { numero: '150', nombre: 'Uramaki de salmón', piezas: 8, categoria: 'Uramaki' },
+    { numero: '158', nombre: 'Uramaki California', piezas: 8, categoria: 'Uramaki' },
+    { numero: 'G150', nombre: 'Gunkan picante', piezas: 2, categoria: 'Gunkan' },
+    { numero: 'P1', nombre: 'Mochi', piezas: 1, categoria: 'Postres' },
+    { numero: 'P10', nombre: 'Tarta de queso', piezas: 1, categoria: 'Postres' },
+  ]
+  const buscar = (texto: string) => nuevoNucleo(carta).buscar(texto).map((p) => p.numero)
+
+  it("buscar('salmon') encuentra 'Nigiri de Salmón', sin importar tildes ni mayúsculas", () => {
+    expect(buscar('salmon')).toEqual(['045', '150'])
+    expect(buscar('SALMÓN')).toEqual(['045', '150'])
+  })
+
+  it('encuentra pedazos de palabra', () => {
+    expect(buscar('salm')).toEqual(['045', '150'])
+    expect(buscar('forn')).toEqual(['158'])
+  })
+
+  it("'gunkan' devuelve toda la categoría, aunque el nombre no lo diga", () => {
+    const conCategoria = [...carta, { numero: 'G151', nombre: 'Huevas', piezas: 2, categoria: 'Gunkan' }]
+    const nucleo = nuevoNucleo(conCategoria)
+    expect(nucleo.buscar('gunkan').map((p) => p.numero)).toEqual(['G150', 'G151'])
+    expect(nucleo.buscar('POSTRE').map((p) => p.numero)).toEqual(['P1', 'P10'])
+  })
+
+  it('un número encuentra el Plato con ese número', () => {
+    expect(buscar('158')).toEqual(['158'])
+  })
+
+  it('al buscar un número, la coincidencia exacta va primera', () => {
+    expect(buscar('15')).toEqual(['150', '158', 'G150'])
+    const conQuince = [...carta, { numero: '015', nombre: 'Sopa miso', piezas: 1, categoria: 'Sopas' }]
+    expect(nuevoNucleo(conQuince).buscar('15').map((p) => p.numero)).toEqual([
+      '015',
+      '150',
+      '158',
+      'G150',
+    ])
+  })
+
+  it('no importan los ceros a la izquierda', () => {
+    expect(buscar('45')).toEqual(['045'])
+    expect(buscar('0045')).toEqual(['045'])
+    expect(buscar('2')).toEqual(['002'])
+  })
+
+  it("'p1' encuentra el Postre P1 primero, sin importar mayúsculas", () => {
+    expect(buscar('p1')).toEqual(['P1', 'P10'])
+    expect(buscar('P10')).toEqual(['P10'])
+    expect(buscar('g150')).toEqual(['G150'])
+  })
+
+  it('un texto vacío devuelve toda la Carta, en orden', () => {
+    const todos = carta.map((p) => p.numero)
+    expect(buscar('')).toEqual(todos)
+    expect(buscar('   ')).toEqual(todos)
+  })
+
+  it('los resultados conservan el orden de la Carta', () => {
+    expect(buscar('de')).toEqual(['002', '045', '046', '150', 'P10'])
+  })
+
+  it('sin coincidencias devuelve una lista vacía', () => {
+    expect(buscar('xyz')).toEqual([])
+    expect(buscar('999')).toEqual([])
+  })
+})
+
 describe('líneas del detalle', () => {
   it('cada Plato tomado da una línea con veces y Piezas, de más a menos Piezas', () => {
     const nucleo = nuevoNucleo()
