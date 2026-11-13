@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { agruparPorCategoria, catalogo, validarCatalogo } from './catalogo'
 
 describe('el Catálogo publicado', () => {
-  it('tiene Platos', () => {
-    expect(catalogo.length).toBeGreaterThan(0)
+  it('tiene los 206 Platos de la Carta', () => {
+    expect(catalogo.length).toBe(206)
   })
 
   it('es válido', () => {
