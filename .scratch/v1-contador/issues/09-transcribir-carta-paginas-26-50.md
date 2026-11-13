@@ -18,3 +18,17 @@ Reglas (spec → Implementation Decisions → Catálogo; ADR 0001):
 - [ ] Si algo se lee mal o es ambiguo, se deja una nota al pie de este ticket en vez de inventar el dato
 - [ ] El test de validación del Catálogo sigue en verde (números únicos, piezas ≥ 1)
 - [ ] La app compila, y los Platos nuevos se pueden encontrar buscando por número y por nombre
+
+## Comments
+
+Ninguna página se saltó y no hay números ilegibles.
+
+Ambigüedades:
+- El orden no es monótono: después de 099 (p32) vienen 280–355 y luego 100–110 (p46–50). Se respetó el orden de las páginas.
+- 092 "Fideo de arroz verduras i ous": el nombre mezcla catalán, y la descripción está copiada de 093. Se dejó el nombre tal cual.
+- 284 Ternera barbacoa y 355 Vieras a la plancha: la foto muestra varias piezas pero no tienen sufijo PZ, así que piezas = 1 (regla estricta).
+- 302 Langostino con sal y pimenta especial lleva "1€ EXTRA" y 105 Espaguetis de salmón es "1 máx por persona". Los dos se incluyeron.
+- Erratas que se dejaron como están impresas: 095 "Espaquetis", 108 "Tatakai", 344 "Tori terikaki", 342 "Rejo", 283/302/305 "pimento/pimenta".
+- Donburi aparece en dos secciones (099 y 110), con la misma categoría.
+
+Saltos (no impresos en estas páginas): 078–079, 089–091, 094, 096–098, 106, 286, 290–301, 307, 309–339, 345, 349–350, 352, 354.
