@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, type Ref } from 'react'
 import type { Plato } from './catalogo/catalogo'
 import type { Veces } from './nucleo/nucleo'
 import { useConsumo, useNucleo } from './nucleo/react'
-import { RESTAURANTE, textoDePiezas } from './nucleo/textos'
+import { RESTAURANTE } from './nucleo/textos'
 import { DetalleDeConsumo } from './DetalleDeConsumo'
 import { Total } from './Total'
 
@@ -18,13 +18,6 @@ export function App() {
     buscador.current?.focus()
   }
 
-  // Después de tocar un Plato, el buscador se limpia para buscar el siguiente.
-  function limpiarBusqueda() {
-    if (!texto) return
-    borrarBusqueda()
-    window.scrollTo({ top: 0 })
-  }
-
   if (verDetalle) return <DetalleDeConsumo alVolver={() => setVerDetalle(false)} />
   return (
     <main className="app">
@@ -36,7 +29,7 @@ export function App() {
         <Total alTocar={() => setVerDetalle(true)} />
         <Buscador ref={buscador} texto={texto} alCambiar={setTexto} alBorrar={borrarBusqueda} />
       </header>
-      <ListaDePlatos texto={texto} veces={veces} alTocar={limpiarBusqueda} />
+      <ListaDePlatos texto={texto} veces={veces} />
     </main>
   )
 }
@@ -81,17 +74,15 @@ function Buscador({
 function ListaDePlatos({
   texto,
   veces,
-  alTocar,
 }: {
   texto: string
   veces: Readonly<Veces>
-  alTocar: () => void
 }) {
   const nucleo = useNucleo()
   const resultados = useMemo(() => nucleo.buscar(texto), [nucleo, texto])
   const grupos = nucleo.platosPorCategoria()
   const tarjeta = (plato: Plato) => (
-    <TarjetaDePlato key={plato.numero} plato={plato} veces={veces[plato.numero] ?? 0} alTocar={alTocar} />
+    <TarjetaDePlato key={plato.numero} plato={plato} veces={veces[plato.numero] ?? 0} />
   )
 
   if (!texto.trim()) {
@@ -112,7 +103,7 @@ function ListaDePlatos({
   )
 }
 
-function TarjetaDePlato({ plato, veces, alTocar }: { plato: Plato; veces: number; alTocar: () => void }) {
+function TarjetaDePlato({ plato, veces }: { plato: Plato; veces: number }) {
   const nucleo = useNucleo()
   const tomado = veces > 0
   return (
@@ -120,14 +111,10 @@ function TarjetaDePlato({ plato, veces, alTocar }: { plato: Plato; veces: number
       <button
         type="button"
         className="tocar"
-        onClick={() => {
-          nucleo.tomar(plato.numero)
-          alTocar()
-        }}
+        onClick={() => nucleo.tomar(plato.numero)}
       >
         <span className="numero">{plato.numero}</span>
         <span className="nombre">{plato.nombre}</span>
-        <span className="piezas">{textoDePiezas(plato.piezas)}</span>
         {tomado && <span className="veces">×{veces}</span>}
       </button>
       {tomado && (
