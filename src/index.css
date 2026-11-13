@@ -228,3 +228,108 @@ body {
 .detalle-acciones:empty {
   display: none;
 }
+
+/* Compartir (ticket 06) */
+
+.compartir {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.boton-principal,
+.dialogo-botones button {
+  min-height: 3rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: var(--superficie);
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.boton-principal,
+.dialogo-botones .boton-principal {
+  background: var(--acento);
+  color: var(--fondo);
+}
+
+.boton-principal:active,
+.dialogo-botones button:active {
+  opacity: 0.8;
+}
+
+.apodo-actual {
+  margin: 0;
+  text-align: center;
+  color: var(--tenue);
+  font-size: 0.9rem;
+}
+
+.enlace {
+  padding: 0.5rem 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--acento);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.aviso {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--superficie);
+  text-align: center;
+}
+
+.dialogo-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 0.6);
+}
+
+.dialogo {
+  width: 100%;
+  max-width: 24rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background: var(--fondo);
+  border: 1px solid var(--superficie);
+}
+
+.dialogo h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.dialogo p {
+  margin: 0 0 1rem;
+  color: var(--tenue);
+}
+
+.dialogo input {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--tenue);
+  border-radius: 0.5rem;
+  background: var(--superficie);
+  color: inherit;
+  font-size: 1rem;
+}
+
+.dialogo-botones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}

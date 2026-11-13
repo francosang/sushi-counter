@@ -1,3 +1,4 @@
+import { Compartir } from './Compartir'
 import { useConsumo } from './nucleo/react'
 
 const piezasTexto = (n: number) => `${n} ${n === 1 ? 'pieza' : 'piezas'}`
@@ -34,7 +35,7 @@ export function DetalleDeConsumo({ alVolver }: { alVolver: () => void }) {
       )}
 
       <div className="detalle-acciones">
-        {/* Ticket 06: botón "Compartir". */}
+        <Compartir />
         {/* Ticket 05: botón "Terminar visita" (con confirmación). */}
       </div>
     </main>

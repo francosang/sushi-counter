@@ -10,8 +10,8 @@ Ver la spec: historias 35–42; Implementation Decisions → `textoParaCompartir
 
 **Status:** ready-for-agent
 
-- [ ] Tests del núcleo: el texto incluye el total de Piezas, "Kayi Sushi Barcelona" y los Platos principales
-- [ ] Tests: con Apodo lo incluye; sin Apodo usa un texto genérico; sin Consumo genera un texto coherente
-- [ ] Tests: el Apodo se guarda y persiste entre instancias del núcleo
-- [ ] "Compartir" usa la Web Share API si está disponible; si no, copia al portapapeles y muestra un aviso
-- [ ] La primera vez se pide el Apodo (opcional, se puede saltear); después se puede editar
+- [x] Tests del núcleo: el texto incluye el total de Piezas, "Kayi Sushi Barcelona" y los Platos principales
+- [x] Tests: con Apodo lo incluye; sin Apodo usa un texto genérico; sin Consumo genera un texto coherente
+- [x] Tests: el Apodo se guarda y persiste entre instancias del núcleo
+- [x] "Compartir" usa la Web Share API si está disponible; si no, copia al portapapeles y muestra un aviso
+- [x] La primera vez se pide el Apodo (opcional, se puede saltear); después se puede editar

@@ -31,6 +31,8 @@ export interface Guardado {
   visitaActiva: VisitaActiva | null
   visitasTerminadas: VisitaTerminada[]
   apodo: string | null
+  /** Si ya se preguntó el Apodo (aunque se haya salteado). Opcional: falta en lo guardado antes de existir. */
+  apodoPreguntado?: boolean
 }
 
 export function guardadoVacio(): Guardado {
@@ -62,7 +64,8 @@ function esGuardadoV1(datos: unknown): datos is Guardado {
     (g.visitaActiva === null || esVisita(g.visitaActiva)) &&
     Array.isArray(g.visitasTerminadas) &&
     g.visitasTerminadas.every((v) => esVisita(v) && typeof v.fin === 'number') &&
-    (g.apodo === null || typeof g.apodo === 'string')
+    (g.apodo === null || typeof g.apodo === 'string') &&
+    (g.apodoPreguntado === undefined || typeof g.apodoPreguntado === 'boolean')
   )
 }
 

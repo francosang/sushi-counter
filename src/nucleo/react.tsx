@@ -23,3 +23,9 @@ export function useConsumo(): Consumo {
   const nucleo = useNucleo()
   return useSyncExternalStore(nucleo.suscribir, nucleo.consumo)
 }
+
+/** El Apodo guardado (o `null`); re-renderiza cuando cambia. */
+export function useApodo(): string | null {
+  const nucleo = useNucleo()
+  return useSyncExternalStore(nucleo.suscribir, nucleo.apodo)
+}

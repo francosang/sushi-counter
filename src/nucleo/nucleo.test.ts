@@ -259,3 +259,131 @@ describe('líneas del detalle', () => {
     ])
   })
 })
+
+describe('textoParaCompartir', () => {
+  it('con Apodo dice quién, cuántas Piezas, dónde y los Platos principales', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('158')
+    nucleo.tomar('045')
+    nucleo.tomar('045')
+    expect(nucleo.textoParaCompartir('Franco')).toBe(
+      '🍣 Franco lleva 12 piezas en Kayi Sushi Barcelona — top: Uramaki California ×1, Nigiri de salmón ×2',
+    )
+  })
+
+  it('los Platos principales son las 3 primeras líneas del detalle', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('P1')
+    nucleo.tomar('201')
+    nucleo.tomar('045')
+    nucleo.tomar('158')
+    expect(nucleo.textoParaCompartir('Franco')).toBe(
+      '🍣 Franco lleva 12 piezas en Kayi Sushi Barcelona — top: Uramaki California ×1, Nigiri de salmón ×1, Ebi tempura ×1',
+    )
+  })
+
+  it('sin Apodo usa un texto genérico; un Apodo vacío o en blanco cuenta como sin Apodo', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('158')
+    const generico = '🍣 Llevo 8 piezas en Kayi Sushi Barcelona — top: Uramaki California ×1'
+    expect(nucleo.textoParaCompartir()).toBe(generico)
+    expect(nucleo.textoParaCompartir(null)).toBe(generico)
+    expect(nucleo.textoParaCompartir('')).toBe(generico)
+    expect(nucleo.textoParaCompartir('   ')).toBe(generico)
+  })
+
+  it('el Apodo se usa sin espacios de más', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('158')
+    expect(nucleo.textoParaCompartir('  Franco ')).toBe(
+      '🍣 Franco lleva 8 piezas en Kayi Sushi Barcelona — top: Uramaki California ×1',
+    )
+  })
+
+  it('con 1 Pieza usa el singular', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('201')
+    expect(nucleo.textoParaCompartir('Franco')).toBe(
+      '🍣 Franco lleva 1 pieza en Kayi Sushi Barcelona — top: Ebi tempura ×1',
+    )
+  })
+
+  it('sin Consumo genera un texto coherente, con y sin Apodo', () => {
+    const nucleo = nuevoNucleo()
+    expect(nucleo.textoParaCompartir('Franco')).toBe(
+      '🍣 Franco todavía no tomó ninguna pieza en Kayi Sushi Barcelona',
+    )
+    expect(nucleo.textoParaCompartir()).toBe('🍣 Todavía no tomé ninguna pieza en Kayi Sushi Barcelona')
+  })
+})
+
+describe('Apodo', () => {
+  it('al principio no hay Apodo y todavía no se preguntó', () => {
+    const nucleo = nuevoNucleo()
+    expect(nucleo.apodo()).toBeNull()
+    expect(nucleo.apodoPreguntado()).toBe(false)
+  })
+
+  it('guardar un Apodo lo recuerda y cuenta como preguntado', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.guardarApodo('  Franco ')
+    expect(nucleo.apodo()).toBe('Franco')
+    expect(nucleo.apodoPreguntado()).toBe(true)
+  })
+
+  it('saltear el Apodo deja sin Apodo pero ya no se vuelve a preguntar', () => {
+    for (const salteado of [null, '', '   ']) {
+      valoresGuardados.clear()
+      const nucleo = nuevoNucleo()
+      nucleo.guardarApodo(salteado)
+      expect(nucleo.apodo()).toBeNull()
+      expect(nucleo.apodoPreguntado()).toBe(true)
+      expect(nuevoNucleo().apodoPreguntado()).toBe(true)
+    }
+  })
+
+  it('el Apodo persiste entre instancias del núcleo', () => {
+    nuevoNucleo().guardarApodo('Franco')
+    const otro = nuevoNucleo()
+    expect(otro.apodo()).toBe('Franco')
+    expect(otro.apodoPreguntado()).toBe(true)
+  })
+
+  it('el Apodo se puede cambiar y borrar después', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.guardarApodo('Fran')
+    nucleo.guardarApodo('Franco')
+    expect(nuevoNucleo().apodo()).toBe('Franco')
+    nucleo.guardarApodo('')
+    expect(nuevoNucleo().apodo()).toBeNull()
+    expect(nuevoNucleo().apodoPreguntado()).toBe(true)
+  })
+
+  it('textoParaCompartir sin argumento usa el Apodo guardado', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('158')
+    nucleo.guardarApodo('Franco')
+    expect(nucleo.textoParaCompartir()).toBe(
+      '🍣 Franco lleva 8 piezas en Kayi Sushi Barcelona — top: Uramaki California ×1',
+    )
+    expect(nucleo.textoParaCompartir(null)).toBe(
+      '🍣 Llevo 8 piezas en Kayi Sushi Barcelona — top: Uramaki California ×1',
+    )
+  })
+
+  it('guardar el Apodo avisa a los suscriptores, y no avisa si no cambió nada', () => {
+    const nucleo = nuevoNucleo()
+    let avisos = 0
+    nucleo.suscribir(() => avisos++)
+    nucleo.guardarApodo('Franco')
+    nucleo.guardarApodo(' Franco ')
+    expect(avisos).toBe(1)
+  })
+
+  it('guardar el Apodo no toca el Consumo', () => {
+    const nucleo = nuevoNucleo()
+    nucleo.tomar('158')
+    nucleo.guardarApodo('Franco')
+    expect(vecesYTotal(nuevoNucleo())).toEqual({ veces: { '158': 1 }, totalPiezas: 8 })
+  })
+})

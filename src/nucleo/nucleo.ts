@@ -6,6 +6,16 @@ import type { Plato } from '../catalogo/catalogo'
 import type { Almacenamiento } from './almacenamiento'
 import { escribirGuardado, leerGuardado, type Guardado, type Veces } from './formato'
 
+/** Cuántas líneas del detalle entran en el texto para compartir. */
+const PLATOS_PRINCIPALES = 3
+const RESTAURANTE = 'Kayi Sushi Barcelona'
+
+/** Un Apodo vacío o en blanco cuenta como sin Apodo. */
+function limpiarApodo(apodo: string | null | undefined): string | null {
+  const limpio = apodo?.trim() ?? ''
+  return limpio === '' ? null : limpio
+}
+
 export interface DependenciasDelNucleo {
   catalogo: readonly Plato[]
   almacenamiento: Almacenamiento
@@ -37,6 +47,18 @@ export interface Nucleo {
   devolver(numero: string): void
   /** El Consumo de la Visita activa. Devuelve el mismo objeto mientras nada cambie. */
   consumo(): Consumo
+  /**
+   * El resumen en texto para mandar a los amigos: total de Piezas, el restaurante y los
+   * 3 Platos principales (las primeras líneas del detalle). Sin argumento usa el Apodo
+   * guardado; `null`, vacío o en blanco = sin Apodo (texto genérico).
+   */
+  textoParaCompartir(apodo?: string | null): string
+  /** El Apodo guardado, o `null` si no hay. */
+  apodo(): string | null
+  /** Si ya se le preguntó el Apodo (aunque lo haya salteado). */
+  apodoPreguntado(): boolean
+  /** Guarda el Apodo y lo marca como preguntado. `null`, vacío o en blanco = saltear (sin Apodo). */
+  guardarApodo(apodo: string | null): void
   /** Avisa de cada cambio. Devuelve la función para dejar de escuchar. */
   suscribir(alCambiar: () => void): () => void
 }
@@ -54,6 +76,11 @@ export function crearNucleo({ catalogo, almacenamiento, reloj }: DependenciasDel
     consumoCalculado = null
     escribirGuardado(almacenamiento, guardado)
     for (const alCambiar of oyentes) alCambiar()
+  }
+
+  function consumo(): Consumo {
+    consumoCalculado ??= calcularConsumo()
+    return consumoCalculado
   }
 
   function calcularConsumo(): Consumo {
@@ -103,9 +130,39 @@ export function crearNucleo({ catalogo, almacenamiento, reloj }: DependenciasDel
       })
     },
 
-    consumo() {
-      consumoCalculado ??= calcularConsumo()
-      return consumoCalculado
+    consumo,
+
+    textoParaCompartir(apodo) {
+      const quien = limpiarApodo(apodo === undefined ? guardado.apodo : apodo)
+      const { totalPiezas, lineas } = consumo()
+      if (totalPiezas === 0) {
+        return quien
+          ? `🍣 ${quien} todavía no tomó ninguna pieza en ${RESTAURANTE}`
+          : `🍣 Todavía no tomé ninguna pieza en ${RESTAURANTE}`
+      }
+      const piezas = `${totalPiezas} ${totalPiezas === 1 ? 'pieza' : 'piezas'}`
+      const lleva = quien ? `${quien} lleva` : 'Llevo'
+      const top = lineas
+        .slice(0, PLATOS_PRINCIPALES)
+        .map((l) => `${l.plato.nombre} ×${l.veces}`)
+        .join(', ')
+      return `🍣 ${lleva} ${piezas} en ${RESTAURANTE} — top: ${top}`
+    },
+
+    apodo() {
+      return guardado.apodo
+    },
+
+    apodoPreguntado() {
+      return guardado.apodoPreguntado ?? false
+    },
+
+    guardarApodo(apodo) {
+      const limpio = limpiarApodo(apodo)
+      cambiar((g) => {
+        if (g.apodo === limpio && g.apodoPreguntado) return null
+        return { ...g, apodo: limpio, apodoPreguntado: true }
+      })
     },
 
     suscribir(alCambiar) {
